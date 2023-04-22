@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "fiddle-mobile",
-    "slug": "fiddle-mobile",
-    "version": "1.0.0",
+    "name": "FiddleQuest",
+    "slug": "teacher-video-app",
+    "version": "3.0.0",
+    "privacy": "public",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,17 +12,46 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "platforms": ["android", "ios"],
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": ["./plugins/withRNVideoProcessing"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.FiddleQuest.FiddleQuest2",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "splash": {
+        "image": "./src/assets/splash2.png",
+        "backgroundColor": "#eeeeee",
+        "resizeMode": "contain"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "foregroundImage": "./src/assets/ic_launcher_foreground.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "splash": {
+        "ldpi": "./src/assets/splash-ldpi.png",
+        "mdpi": "./src/assets/splash-mdpi.png",
+        "hdpi": "./src/assets/splash-hdpi.png",
+        "xhdpi": "./src/assets/splash-xhdpi.png",
+        "xxhdpi": "./src/assets/splash-xxhdpi.png",
+        "xxxhdpi": "./src/assets/splash-xxxhdpi.png",
+        "backgroundColor": "#eeeeee",
+        "resizeMode": "contain",
+        "image": "./assets/splashscreen.png"
+      },
+      "package": "com.fiddlequest.teacher_app",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

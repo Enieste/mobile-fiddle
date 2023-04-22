@@ -21,7 +21,7 @@ const production = 'wss://app.fiddlequest.com/websocket';
 Meteor.connect(development);
 
 class AuthLoadingScreen extends PureComponent {
-  constructor(props: any) {
+  constructor(props) {
     super(props);
   }
 
