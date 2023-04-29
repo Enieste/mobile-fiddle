@@ -6,11 +6,6 @@ let navigatorRef;
 
 export const getNavigatorRef = () => navigatorRef;
 
-class App extends React.Component {
-
-  render() {
-    return <AppNavigator ref={nav => { navigatorRef = nav; }} />;
-  }
-}
+const App = () => <AppNavigator />;
 
 registerRootComponent(App);

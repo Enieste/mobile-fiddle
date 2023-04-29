@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, TextInput, ScrollView, Switch } from 'react-native';
 import get from 'lodash/get';
-import { withNavigationFocus } from 'react-navigation';
+import { withNavigationFocus } from '@react-navigation/compat';
 import renderButton from '../components/button';
 import { backgroundMain, fontColor, inputFont, iconFont } from '../colorSets';
 

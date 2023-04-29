@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
 import { Text, View, ActivityIndicator, StyleSheet, Platform, Alert, CameraRoll } from 'react-native';
-import Meteor from 'react-native-meteor';
+import Meteor from '@meteorrn/core';
 import get from 'lodash/get';
 import { accountType, childrenIds, TEACHER, STUDENT } from "../lib/utils";
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
-import { withNavigationFocus } from 'react-navigation';
-import { ProcessingManager } from 'react-native-video-processing';
+import { withNavigationFocus } from '@react-navigation/compat';
 
 import appStore from '../mobx/appStore';
 
@@ -72,7 +71,7 @@ class CachingVideo extends Component {
         return result;
       })
       .then(result => {
-        return isAndroid ? result.uri : ProcessingManager.getVideoInfo(result.uri)
+        return result.uri
           .then(({ size }) => {
             if(size.height > size.width) {
               nonLandscapeAlert();

@@ -16,7 +16,6 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "plugins": ["./plugins/withRNVideoProcessing"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.FiddleQuest.FiddleQuest2",
@@ -43,7 +42,7 @@
         "xxxhdpi": "./src/assets/splash-xxxhdpi.png",
         "backgroundColor": "#eeeeee",
         "resizeMode": "contain",
-        "image": "./assets/splashscreen.png"
+        "image": "./assets/splash-screen.png"
       },
       "package": "com.fiddlequest.teacher_app",
       "permissions": [

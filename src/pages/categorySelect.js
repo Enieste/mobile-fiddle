@@ -2,11 +2,13 @@ import React, { Component, PureComponent } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import get from 'lodash/get';
 import omit from 'lodash/omit';
-import { HeaderBackButton, NavigationActions, StackActions, withNavigationFocus } from 'react-navigation';
+//import { NavigationActions, StackActions, withNavigationFocus } from '@react-navigation/compat';
+import { HeaderBackButton } from 'react-navigation-stack';
 import { AndroidBackHandler } from 'react-navigation-backhandler';
 import { backgroundMain, fontColor } from '../colorSets';
 import { getNavigatorRef } from "../entry";
 import appStore from "../mobx/appStore";
+import { NavigationActions, StackActions, withNavigationFocus } from "@react-navigation/compat";
 
 
 const categories = [

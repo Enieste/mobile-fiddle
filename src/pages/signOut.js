@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Button } from 'react-native';
-import Meteor from 'react-native-meteor';
+import Meteor from '@meteorrn/core';
 import { backgroundMain, signOutButton } from '../colorSets';
 
 

@@ -9,7 +9,7 @@ import find from 'lodash/find';
 import debounce from 'lodash/debounce';
 import every from 'lodash/every';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { withNavigationFocus } from 'react-navigation';
+import { withNavigationFocus } from '@react-navigation/compat';
 import { inputFont, fontColor } from "../colorSets";
 import { durationToStr } from '../lib/utils';
 import permissionAlert from '../components/permissionAlert';

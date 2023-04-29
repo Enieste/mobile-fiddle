@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
-import Meteor, { createContainer } from 'react-native-meteor';
-import { withNavigationFocus } from 'react-navigation';
+import Meteor, { withTracker } from '@meteorrn/core';
+import { withNavigationFocus } from '@react-navigation/compat';
 import get from 'lodash/get';
 import { getId, studentNamesToString, isTeacher, isIndependent, userName, getTeacherId } from '../lib/utils';
 import uploadItem from '../lib/upload';
@@ -103,7 +103,7 @@ class Summary extends PureComponent {
 
 // Size is important here. Smaller icons doesn't work with iphone 6 and 7. So we scale them in svg. Even 5% smaller broke TouchableOpacity.
 
-const summaryContainer = createContainer(params => {
+const summaryContainer = withTracker(params => {
   const user = Meteor.user();
   const studentsSub = Meteor.subscribe(isTeacher(user) ? 'MyStudents' : 'Children');
   return {
@@ -111,7 +111,7 @@ const summaryContainer = createContainer(params => {
     students: studentsSub.ready() && Meteor.collection('users').find({ 'profile.accountType': 'student' }),
     ready: studentsSub.ready(),
   };
-}, Summary);
+})(Summary);
 
 export default withNavigationFocus(summaryContainer);
 

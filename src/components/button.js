@@ -3,7 +3,7 @@ import { View, Platform, TouchableOpacity, Text, Button, StyleSheet } from 'reac
 import { iconFont } from "../colorSets";
 
 
-export default renderButton = (onClick, label, color) => {
+export default (onClick, label, color) => {
   return Platform.select({
     ios: () => {
       return (<TouchableOpacity style={styles.buttonIos} onPress={onClick}>

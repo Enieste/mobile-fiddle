@@ -1,10 +1,10 @@
 import React, { PureComponent, Component } from 'react';
-import Meteor, { createContainer } from 'react-native-meteor';
+import Meteor, { withTracker } from '@meteorrn/core';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Button, Platform } from 'react-native';
 import get from 'lodash/get';
 import { observer } from 'mobx-react';
 import { getId, itemTitle, listFilter, isTeacher } from '../lib/utils';
-import { withNavigationFocus } from 'react-navigation';
+import { withNavigationFocus } from '@react-navigation/compat';
 import SearchInput from '../components/searchField';
 import { backgroundGray, backgroundMain, fontColor, inputFont, iconFont } from '../colorSets';
 import NewSongIcon from '../components/icons/newSongIcon';
@@ -161,7 +161,7 @@ const songSelectObserved = observer(class SongSelect extends Component {
   }
 });
 
-const songSelectContainer = createContainer(params => {
+const songSelectContainer = withTracker(params => {
   const category = get(params, ['navigation', 'state', 'params', 'category']);
   const subscription = Meteor.subscribe('PracticeItemsForType', category.id);
   return {
@@ -172,7 +172,7 @@ const songSelectContainer = createContainer(params => {
     ready: subscription.ready(),
     category,
   };
-}, songSelectObserved);
+})(songSelectObserved);
 
 class NewTitleButton extends PureComponent {
   onPress = () => {

@@ -1,6 +1,4 @@
 package com.fiddlequest.teacher_app;
-import com.shahenlibrary.RNVideoProcessingPackage;
-
 
 import android.app.Application;
 import android.content.res.Configuration;
@@ -21,7 +19,7 @@ import java.util.List;
 
 public class MainApplication extends Application implements ReactApplication {
 
-    private final ReactNativeHost mReactNativeHost =
+  private final ReactNativeHost mReactNativeHost =
     new ReactNativeHostWrapper(this, new DefaultReactNativeHost(this) {
       @Override
       public boolean getUseDeveloperSupport() {
@@ -34,10 +32,7 @@ public class MainApplication extends Application implements ReactApplication {
         List<ReactPackage> packages = new PackageList(this).getPackages();
         // Packages that cannot be autolinked yet can be added manually here, for example:
         // packages.add(new MyReactNativePackage());
-
-        packages.add(new RNVideoProcessingPackage());
         return packages;
-    
       }
 
       @Override

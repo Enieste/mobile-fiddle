@@ -1,12 +1,13 @@
 import React, { Component, PureComponent } from 'react';
-import Meteor, { createContainer } from 'react-native-meteor';
+import Meteor, { withTracker } from '@meteorrn/core';
 import { observer } from 'mobx-react';
 import { AndroidBackHandler } from 'react-navigation-backhandler';
 import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native';
 import get from 'lodash/get';
 import omit from 'lodash/omit';
 import { getStudentName, listFilter, accountType, TEACHER } from '../lib/utils';
-import { withNavigationFocus, HeaderBackButton, NavigationActions, StackActions } from 'react-navigation';
+import { withNavigationFocus, NavigationActions, StackActions } from '@react-navigation/compat';
+import { HeaderBackButton } from 'react-navigation-stack';
 import appStore from '../mobx/appStore';
 import SearchInput from '../components/searchField';
 import StudentItem from '../components/studentItem';
@@ -113,7 +114,7 @@ const studentSelectObserver = observer(class StudentSelect extends Component {
   }
 });
 
-const studentSelectContainer = createContainer(params => {
+const studentSelectContainer = withTracker(params => {
   const user = Meteor.user();
   const userType = accountType(user);
   const sub = Meteor.subscribe(userType === TEACHER ? 'MyStudents' : 'Children');
@@ -122,7 +123,7 @@ const studentSelectContainer = createContainer(params => {
       .find({ 'profile.accountType': 'student' }, { sort: { 'profile.fullName': 1 } }),
     dataReady: sub.ready(),
   };
-}, studentSelectObserver);
+})(studentSelectObserver);
 
 class BackButton extends PureComponent {
   onPress = () => {

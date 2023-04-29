@@ -1,6 +1,6 @@
 import React, { Component, PureComponent } from 'react';
 import { View, FlatList, ProgressBarAndroid, ProgressViewIOS, Text, StyleSheet, Platform } from 'react-native';
-import Meteor, { createContainer } from 'react-native-meteor';
+import Meteor, { withTracker } from '@meteorrn/core';
 import { observer } from 'mobx-react';
 import { autorun } from 'mobx';
 import get from 'lodash/get';
@@ -9,7 +9,7 @@ import uploadsStore from '../mobx/uploadsStore';
 import { fontColor, iconFont } from '../colorSets';
 import { studentNamesToString, isTeacher, isIndependent, userName } from '../lib/utils';
 import UploadComplete from '../components/icons/uploadComplete';
-import { withNavigationFocus } from 'react-navigation';
+import { withNavigationFocus } from '@react-navigation/compat';
 
 const isIos = Platform.OS === 'ios';
 
@@ -79,14 +79,14 @@ class UploadsView extends PureComponent {
   }
 }
 
-const UploadViewContainer = createContainer(params => {
+const UploadViewContainer = withTracker(params => {
   const user = Meteor.user();
   const studentsSub = isTeacher(user) ? Meteor.subscribe('MyStudents') : Meteor.subscribe('Children');
   return {
     user,
     students: studentsSub.ready() && Meteor.collection('users').find({ 'profile.accountType': 'student' }),
   };
-}, UploadsView);
+})(UploadsView);
 
 
 export default withNavigationFocus(observer(class UploadProgresses extends Component {
