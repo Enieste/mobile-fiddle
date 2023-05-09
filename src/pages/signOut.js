@@ -1,29 +1,28 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform, Button } from 'react-native';
 import Meteor from '@meteorrn/core';
 import { backgroundMain, signOutButton } from '../colorSets';
+import { useNavigation } from '@react-navigation/native';
 
+const SignOut = () => {
+  const navigation = useNavigation();
 
-class SignOut extends PureComponent {
-  static navigationOptions = {
-    title: 'Sign Out',
-    headerRight: (<View />)
-  };
-  sighingOut = () => {
+  const sighingOut = () => {
     Meteor.logout();
-    this.props.navigation.navigate('Auth')
+    navigation.navigate('SignIn')
   };
-  buttonRender = () => {
+
+  const buttonRender = () => {
     return Platform.select({
       ios: () => {
-        return (<TouchableOpacity style={styles.buttonIos} onPress={this.sighingOut}>
+        return (<TouchableOpacity style={styles.buttonIos} onPress={sighingOut}>
           <Text style={styles.buttonText}>Sign Out from FiddleQuest</Text>
         </TouchableOpacity>)
       },
       android: () => {
         return <View style={styles.buttonAndroid}>
           <Button
-            onPress={this.sighingOut}
+            onPress={sighingOut}
             title="Sign Out from FiddleQuest"
             color="#F3172D"
           />
@@ -31,13 +30,12 @@ class SignOut extends PureComponent {
       },
     })();
   };
-  render() {
-    return (
-      <View style={styles.container}>
-        {this.buttonRender()}
-      </View>
-    );
-  }
+
+  return (
+    <View style={styles.container}>
+      {buttonRender()}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

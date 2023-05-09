@@ -16,6 +16,27 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your videos.",
+          "cameraPermission": "Allow the app to access your camera.",
+          "microphonePermission": "Allow the app to access your microphone."
+        }
+      ], [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow the app to access your videos.",
+          "savePhotosPermission": "Allow the app to save videos."
+        }
+      ], [
+        "expo-screen-orientation",
+        {
+          "initialOrientation": "PORTRAIT"
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.FiddleQuest.FiddleQuest2",

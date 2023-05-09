@@ -18,15 +18,16 @@ import Comments from './src/pages/comments';
 import Summary from './src/pages/summary';
 import { backgroundTitle } from './src/colorSets';
 import { NavigationContainer } from "@react-navigation/native";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from 'expo-splash-screen';
+import WhiteMenu from "./src/components/icons/whitemenu";
 
 const development = 'ws://localhost:3000/websocket';
 const staging = 'wss://app.staging.fiddlequest.com/websocket';
 const production = 'wss://app.fiddlequest.com/websocket';
 
-Meteor.connect(production, { AsyncStorage });
+Meteor.connect(staging, { AsyncStorage });
 
 SplashScreen.preventAutoHideAsync();
 
@@ -46,7 +47,7 @@ const useUser = () => {
     if (!loggingIn && prevLoggingIn) {
 
       // I did log in and now I do not log in but I'm still not ready! no no
-      if (!user) return;
+      //if (!user) return;
       SplashScreen.hideAsync().then(() => {});
       setUserCertainlyChecked(true);
     }
@@ -105,7 +106,11 @@ const headerStyle = {
 };
 
 const screenOptions = {
-  headerStyle,
+  headerStyle: {
+    backgroundColor: backgroundTitle,
+  },
+  headerTitleAlign: 'center',
+  headerTintColor: '#fff',
 };
 
 /*
@@ -116,7 +121,10 @@ titleStyle: {
  */
 
 const AppStack = <>
-  <AppStack_.Screen name="Home" component={UploadPage} />
+  <AppStack_.Screen
+    name="Home"
+    component={UploadPage}
+  />
   <AppStack_.Screen name="Settings" component={SignOut} />
   <AppStack_.Screen name="CameraMode" component={CameraMode} />
   <AppStack_.Screen name="CachingVideo" component={CachingVideo} />
@@ -131,15 +139,28 @@ const Stack = createStackNavigator();
 
 const App = () => {
   const { user, isLoading, userCertainlyChecked } = useUser();
+  console.log("DSADADAAAAAAAAAAAAAADASDAS", user, isLoading, userCertainlyChecked)
   if (isLoading || !userCertainlyChecked) return <View><Text>Loading...</Text></View>;
+  console.log("DSADADAAAAAAA21312312AAAAAAADASDAS", user)
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={screenOptions}>
         {!user ? (
           // No token found, user isn't signed in
-          <Stack.Screen
-            name="Auth"
-            component={AuthStack}
+          <AuthStack_.Screen
+            name="SignIn"
+            component={SignIn}
+            options={{
+              title: 'Sign-In',
+              headerStyle: {
+                backgroundColor: backgroundTitle
+              },
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                flex: 1,
+                textAlign: 'center',
+              }}
+            }
           />
         ) : (
           // User is signed in

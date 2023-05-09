@@ -1,17 +1,15 @@
-import React, { Component, PureComponent } from 'react';
+import React, { useEffect } from 'react';
 import { View, FlatList, ProgressBarAndroid, ProgressViewIOS, Text, StyleSheet, Platform } from 'react-native';
-import Meteor, { withTracker } from '@meteorrn/core';
+import Meteor, { useTracker } from '@meteorrn/core';
 import { observer } from 'mobx-react';
 import { autorun } from 'mobx';
 import get from 'lodash/get';
-import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
+import { useKeepAwake } from 'expo-keep-awake';
 import uploadsStore from '../mobx/uploadsStore';
 import { fontColor, iconFont } from '../colorSets';
 import { studentNamesToString, isTeacher, isIndependent, userName } from '../lib/utils';
 import UploadComplete from '../components/icons/uploadComplete';
-import { withNavigationFocus } from '@react-navigation/compat';
-
-const isIos = Platform.OS === 'ios';
+import { useIsFocused } from '@react-navigation/native';
 
 const getFilename = upload => upload.filename;
 
@@ -19,23 +17,30 @@ const isComplete  = upload => upload.complete;
 
 const isCompressing = upload => upload.compressing;
 
-class UploadsView extends PureComponent {
+const UploadsView = () => {
+  const isFocused = useIsFocused();
+  const { user, students } = useTracker(() => {
+    const user = Meteor.user();
+    const studentsSub = isTeacher(user) ? Meteor.subscribe('MyStudents') : Meteor.subscribe('Children');
+    return {
+      user,
+      students: studentsSub.ready() && Meteor.collection('users').find({ 'profile.accountType': 'student' }),
+    };
+  });
 
-  componentWillReceiveProps = next => {
-    if(this.props.isFocused && !next.isFocused) {
-      uploadsStore.clearCompleted();
-    }
-  }
+  useEffect(() => {
+    if (!isFocused) uploadsStore.clearCompleted();
+  }, [isFocused]);
 
-  composeUploadText = (item) => {
-    const { user } = this.props;
+  const composeUploadText = (item) => {
     const studentsIds = item.studentIds;
-    const studentNames = studentsIds.map(id => get(this.props.students
+    const studentNames = studentsIds.map(id => get(students
       .find(student => get(student, '_id') === id), ['profile', 'firstName']));
     return `${isIndependent(user) ? userName(user) : studentNamesToString(studentNames)} playing ${item.title}`;
   }
 
-  progressBarRender = (progress) => {
+// https://github.com/oblador/react-native-image-progress TODO change
+  const progressBarRender = (progress) => {
     return Platform.select({
       ios: () => <ProgressViewIOS
         progress={progress}
@@ -52,7 +57,7 @@ class UploadsView extends PureComponent {
     })();
   }
 
-  uploadRender = item => {
+  const uploadRender = (item) => {
     const complete = isComplete(item);
     const compressing = isCompressing(item);
     return <View style={styles.upload}>
@@ -60,77 +65,37 @@ class UploadsView extends PureComponent {
         { complete && <View style={styles.icon}>
           <UploadComplete />
         </View> }
-        <Text>{this.composeUploadText(item)}</Text>
+        <Text>{composeUploadText(item)}</Text>
       </View>
-      { !complete && !compressing && this.progressBarRender(item.progress) }
+      { !complete && !compressing && progressBarRender(item.progress) }
       { compressing && <Text>Compressing...</Text> }
     </View>
   }
 
-  render() {
-    const { isFocused } = this.props;
-    const { uploads } = this.props;
-    return this.props.students ? <FlatList
-      style={{ width: '100%'}}
-      data={uploads}
-      renderItem={({ item }) => this.uploadRender(item)}
-      keyExtractor={getFilename}
-      /> : <View />
-  }
+  const { uploads } = this.props;
+
+  return students ? <FlatList
+    style={{ width: '100%'}}
+    data={uploads}
+    renderItem={({ item }) => uploadRender(item)}
+    keyExtractor={getFilename}
+  /> : <View />
+
 }
 
-const UploadViewContainer = withTracker(params => {
-  const user = Meteor.user();
-  const studentsSub = isTeacher(user) ? Meteor.subscribe('MyStudents') : Meteor.subscribe('Children');
-  return {
-    user,
-    students: studentsSub.ready() && Meteor.collection('users').find({ 'profile.accountType': 'student' }),
-  };
-})(UploadsView);
-
-
-export default withNavigationFocus(observer(class UploadProgresses extends Component {
-
-    componentWillReceiveProps = next => {
-      if(!this.props.isFocused && next.isFocused) {
-        activateKeepAwake();
-      }
-      if(this.props.isFocused && !next.isFocused) {
-        deactivateKeepAwake();
-      }
-    }
-
-    // componentDidMount() {
-    //   this.disposeMobX = autorun(() => {
-    //     const uploads = uploadsStore.list();
-    //     if (uploads.length) {
-    //       console.log('activeted', uploads.length, uploads)
-    //       KeepAwake.activate();
-    //     } else {
-    //       console.log('deactiveted')
-    //       KeepAwake.deactivate();
-    //     }
-    //   });
-    // }
-    //
-    // componentWillUnmount() {
-    //   this.disposeMobX();
-    // }
-
-    render() {
-      const uploads = uploadsStore.list();
-      return <View style={styles.container}>
-        { uploads.length ?
-          <UploadViewContainer uploads={uploads} isFocused={this.props.isFocused } key='container' />
-          : <View style={styles.placeholderContainer}>
-            <Text style={styles.text}>
-              Your queue is empty.{"\n"}All your videos have been uploaded!
-            </Text>
-          </View>}
-      </View>;
-    }
-  }
-));
+const UploadProgresses = observer(() => {
+  useKeepAwake();
+  const uploads = uploadsStore.list();
+  return <View style={styles.container}>
+    { uploads.length ?
+      <UploadsView uploads={uploads} key='container' />
+      : <View style={styles.placeholderContainer}>
+        <Text style={styles.text}>
+          Your queue is empty.{"\n"}All your videos have been uploaded!
+        </Text>
+      </View>}
+  </View>;
+})
 
 const styles = StyleSheet.create({
   container: {
@@ -173,3 +138,5 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
 });
+
+export default UploadProgresses;
