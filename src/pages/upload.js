@@ -128,15 +128,14 @@ const UploadPage = () => {
   const pickVideo = async () => {
     // No permissions request is necessary for launching the image library
     uploadStore.clearCompleted();
-    const resultPromise = await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
     });
 
-    if (!resultPromise.canceled) {
+    if (!result.canceled) {
       navigation.navigate('Home');
     }
-    console.log("resultPromiseresultPromiseresultPromise", resultPromise)
-    navigation.navigate('CachingVideo', { videoUriPromise: get(resultPromise, ['assets', '0', 'uri'])});
+    navigation.navigate('CachingVideo', { videoInfo: get(result, ['assets', '0'])});
   };
 // assets[0].uri <
 //   {"assets":
@@ -151,7 +150,6 @@ const UploadPage = () => {
 //       "uri": "file:///data/user/0/host.exp.exponent/cache/ExperienceData/%2540fiddlequest%252Fteacher-video-app/ImagePicker/cc5ea177-b946-4b0f-8258-d03d0e5d0030.mp4", "width": 464
 //   }],
 //     "canceled": false,
-//     "cancelled": false
 //   }
 
   return (
@@ -226,7 +224,7 @@ const UploadPage = () => {
   //     mediaTypes: ImagePicker.MediaTypeOptions.Videos,
   //   });
   //
-  //   this.props.navigation.navigate('CachingVideo', { videoUriPromise: resultPromise });
+  //   this.props.navigation.navigate('CachingVideo', { videoUri: resultPromise });
   // };
 
 //   render() {

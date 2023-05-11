@@ -139,9 +139,8 @@ const Stack = createStackNavigator();
 
 const App = () => {
   const { user, isLoading, userCertainlyChecked } = useUser();
-  console.log("DSADADAAAAAAAAAAAAAADASDAS", user, isLoading, userCertainlyChecked)
+  // console.log("DSADADAAAAAAAAAAAAAADASDAS", user, isLoading, userCertainlyChecked)
   if (isLoading || !userCertainlyChecked) return <View><Text>Loading...</Text></View>;
-  console.log("DSADADAAAAAAA21312312AAAAAAADASDAS", user)
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={screenOptions}>

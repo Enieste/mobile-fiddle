@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, FlatList, ProgressBarAndroid, ProgressViewIOS, Text, StyleSheet, Platform } from 'react-native';
 import Meteor, { useTracker } from '@meteorrn/core';
 import { observer } from 'mobx-react';
@@ -9,7 +9,7 @@ import uploadsStore from '../mobx/uploadsStore';
 import { fontColor, iconFont } from '../colorSets';
 import { studentNamesToString, isTeacher, isIndependent, userName } from '../lib/utils';
 import UploadComplete from '../components/icons/uploadComplete';
-import { useIsFocused } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const getFilename = upload => upload.filename;
 
@@ -18,7 +18,6 @@ const isComplete  = upload => upload.complete;
 const isCompressing = upload => upload.compressing;
 
 const UploadsView = () => {
-  const isFocused = useIsFocused();
   const { user, students } = useTracker(() => {
     const user = Meteor.user();
     const studentsSub = isTeacher(user) ? Meteor.subscribe('MyStudents') : Meteor.subscribe('Children');
@@ -28,9 +27,10 @@ const UploadsView = () => {
     };
   });
 
-  useEffect(() => {
-    if (!isFocused) uploadsStore.clearCompleted();
-  }, [isFocused]);
+  useFocusEffect(useCallback(() => {
+      return () => uploadsStore.clearCompleted();
+    }, [])
+  );
 
   const composeUploadText = (item) => {
     const studentsIds = item.studentIds;

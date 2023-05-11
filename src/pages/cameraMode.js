@@ -1,4 +1,4 @@
-import React, { PureComponent, useEffect, useRef, useState } from 'react';
+import React, { PureComponent, useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { Camera, CameraType } from 'expo-camera';
@@ -13,7 +13,7 @@ import { withNavigationFocus } from '@react-navigation/compat';
 import { inputFont, fontColor } from "../colorSets";
 import { durationToStr } from '../lib/utils';
 import permissionAlert from '../components/permissionAlert';
-import { useIsFocused } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { identity } from "lodash/util";
 
@@ -69,14 +69,12 @@ const useToggleOrientationMode = () => {
   const toggleToPortrait = async () => {
     await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
   }
-  useEffect(() => {
-    if (isFocused && !oldFocused.current) {
-      toggleToLandscape();
-    } else if (!isFocused && oldFocused.current) {
-      toggleToPortrait();
+  useFocusEffect(useCallback(() => {
+    toggleToLandscape();
+    return () => {
+      return toggleToPortrait();
     }
-    oldFocused.current = isFocused;
-  }, [isFocused])
+  }, [])) // toggle orientation on screen change
 };
 
 const CameraMode = () => {

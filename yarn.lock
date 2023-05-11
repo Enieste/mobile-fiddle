@@ -1951,6 +1951,11 @@
   dependencies:
     deep-assign "^3.0.0"
 
+"@react-native-community/checkbox@^0.5.15":
+  version "0.5.15"
+  resolved "https://registry.yarnpkg.com/@react-native-community/checkbox/-/checkbox-0.5.15.tgz#783255d0886e3eb93fe42f0cef22aeefb8b596a5"
+  integrity sha512-cdg/P4pF8CXd5+6MBIl2luihFTzjfIcKIEVRnF1wgoNoItRVQlyulWYJEPvL2OmdAYTaBsZTXUIdcOkGqpxLZg==
+
 "@react-native-community/cli-clean@^10.1.1":
   version "10.1.1"
   resolved "https://registry.yarnpkg.com/@react-native-community/cli-clean/-/cli-clean-10.1.1.tgz#4c73ce93a63a24d70c0089d4025daac8184ff504"
@@ -4457,6 +4462,11 @@ expo-camera@^13.0.0:
   dependencies:
     "@koale/useworker" "^4.0.2"
     invariant "^2.2.4"
+
+expo-checkbox@~2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/expo-checkbox/-/expo-checkbox-2.3.1.tgz#d214e797a54f387f8ec360487272fefc0aa846a0"
+  integrity sha512-CTIabriK5xbtDnI9U5Hve82/WG85XLI4GLYSRTT1XST21HjQ7mDaeiYm7DnKzcgM+qeBwmbg3crJYnp7WW/8Ew==
 
 expo-constants@~14.2.0, expo-constants@~14.2.1:
   version "14.2.1"
@@ -7714,10 +7724,10 @@ react-native@0.71.7:
     whatwg-fetch "^3.0.0"
     ws "^6.2.2"
 
-react-navigation-backhandler@1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/react-navigation-backhandler/-/react-navigation-backhandler-1.4.0.tgz#55217f391b56481f3b83e6009e9514fa92318e20"
-  integrity sha512-zQeku60A9bZquJ7Oo8S4ZUVYJ+tSXLRsbYs2F21iQy1gR6cnrpQN6J8HEmog4Qsa61gKe28qh37B+X1cmKl9vA==
+react-navigation-backhandler@2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/react-navigation-backhandler/-/react-navigation-backhandler-2.0.1.tgz#5857703b69e0e74ef25d9c8915becebf154e8591"
+  integrity sha512-k4mhEaDfqVGR9P96MbSIAOXwLLiseYlRVZGMBcHInr97ondrebjiRdXOoA9rh87+g1epEPIvqtgFGJEUp4skPg==
 
 react-navigation-stack@2.10.4:
   version "2.10.4"

@@ -5,7 +5,7 @@ import Meteor from '@meteorrn/core';
 import get from 'lodash/get';
 import { accountType, childrenIds, TEACHER, STUDENT } from "../lib/utils";
 import { useKeepAwake } from 'expo-keep-awake';
-import { withNavigationFocus } from '@react-navigation/compat';
+import { observer } from "mobx-react";
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 import appStore from '../mobx/appStore';
@@ -49,45 +49,59 @@ const CachingVideo = () => {
 
   useEffect(() => {
     const user = Meteor.user();
-    const state = route.params;
-    const uriPromise = get(route, ['params', 'videoUriPromise']);
+    const uploadedVideoInfo = get(route, ['params', 'videoInfo']);
+    console.log("uriPromise", uploadedVideoInfo)
     const videoForSaveUri = get(route, ['params', 'videoForSaveUri']);
-    const uploadVideo = async () => {
-      uriPromise && uriPromise.then(result => {
-        if (result.canceled) {
-          navigation.popToTop();
-          throw 'Result.canceled';
-        }
-        return result;
-      }).then(result => {console.log(result); return result})
-        .then(result => {
-          if (isAndroid && result.rotation % rotationModulus !== 0) {
-            nonLandscapeAlert();
-            navigation.popToTop();
-            throw 'nonLandscapeVideo';
-          }
-          return result;
-        }).then(result => {
-          return result.uri
-            .then(({ size }) => {
-              if(size.height > size.width) {
-                nonLandscapeAlert();
-                navigation.popToTop();
-                throw 'nonLandscapeVideo';
-              }
-              return result.uri;
-            });
-        }).then(videoUri => createPath(navigation, videoUri, user));
 
-      videoForSaveUri && MediaLibrary.saveToLibraryAsync(videoForSaveUri).then(() =>
-        {
-          console.log('saving complete');
-          createPath(navigation, videoForSaveUri, user);
-        }
-      );
+    if (uploadedVideoInfo) {
+      if (isAndroid && uploadedVideoInfo.rotation % rotationModulus !==0) {
+        nonLandscapeAlert();
+        navigation.popToTop();
+        throw 'nonLandscapeVideo';
+      }
+
+      //ProcessingManager.getVideoInfo(result.uri) for ios
+
+      if (uploadedVideoInfo.height > uploadedVideoInfo.width) {
+        nonLandscapeAlert();
+        navigation.popToTop();
+        throw 'nonLandscapeVideo';
+      }
+
+      createPath(navigation, uploadedVideoInfo.uri, user);
     }
+    // const uploadVideo = async () => {
+    //   // uploadedVideoInfo && Promise.resolve(uploadedVideoInfo)
+    //   //   .then(result => {console.log(result); return result})
+    //   //   .then(result => {
+    //   //     if (isAndroid && result.rotation % rotationModulus !== 0) {
+    //   //       nonLandscapeAlert();
+    //   //       navigation.popToTop();
+    //   //       throw 'nonLandscapeVideo';
+    //   //     }
+    //   //     return result;
+    //     }).then(result => {
+    //       return result // if ios - was ProcessingManager.getVideoInfo(result.uri)
+    //         .then((res) => {
+    //           console.log("promise4")
+    //           if(res.height > res.width) {
+    //             nonLandscapeAlert();
+    //             navigation.popToTop();
+    //             throw 'nonLandscapeVideo';
+    //           }
+    //           return res.uri;
+    //         });
+    //     }).then(videoUri => createPath(navigation, videoUri, user));
+    //
+    //
+    // }
 
-    uploadVideo();
+    videoForSaveUri && MediaLibrary.saveToLibraryAsync(videoForSaveUri).then(() =>
+      {
+        console.log('saving complete');
+        createPath(navigation, videoForSaveUri, user);
+      }
+    );
 
   }, [navigation])
 
@@ -111,12 +125,12 @@ const CachingVideo = () => {
 
   // async componentDidMount() {
   //   const user = Meteor.user();
-  //   const uriPromise = get(this.props, ['navigation', 'state', 'params', 'videoUriPromise']);
+  //   const uriPromise = get(this.props, ['navigation', 'state', 'params', 'videoUri']);
   //   const videoForSaveUri = get(this.props, ['navigation', 'state', 'params', 'videoForSaveUri']);
   //   uriPromise && uriPromise.then(result => {
-  //     if (result.cancelled) {
+  //     if (result.canceled) {
   //       this.props.navigation.popToTop();
-  //       throw 'Result.cancelled';
+  //       throw 'Result.canceled';
   //     }
   //     return result;
   //   }).then(result => {console.log(result); return result})
@@ -166,5 +180,4 @@ const styles = StyleSheet.create({
   }
 });
 
-// export default withNavigationFocus(CachingVideo);
 export default CachingVideo;

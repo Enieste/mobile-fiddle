@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
-import { View, TouchableOpacity, Text, CheckBox, StyleSheet, Platform } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import Checkbox from 'expo-checkbox';
 import { getId } from '../lib/utils';
 import IosCheckBox from 'react-native-check-box';
 
@@ -30,7 +31,7 @@ export default class StudentItem extends PureComponent {
         isChecked={props.isChecked}
         checkBoxColor={iconFont}
       />,
-      android: (props) => <CheckBox
+      android: (props) => <Checkbox
         style={props.style}
         value={props.isChecked}
         onChange={props.onClick}
