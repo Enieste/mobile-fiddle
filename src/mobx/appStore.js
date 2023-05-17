@@ -1,8 +1,14 @@
-import { observable } from 'mobx';
+import { makeAutoObservable, observable } from 'mobx';
 
 class AppStore {
 
-  states = observable(new Map([['groupSelect', false], ['modalVisible', false], ['isOneStudent', false]]));
+  // states = observable(new Map([['groupSelect', false], ['modalVisible', false], ['isOneStudent', false]]));
+
+  states = new Map([['groupSelect', false], ['modalVisible', false], ['isOneStudent', false]])
+
+  constructor() {
+    makeAutoObservable(this)
+  }
 
   setGroupValue = (value) => {
     this.states.set('groupSelect', value);

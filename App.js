@@ -139,7 +139,6 @@ const Stack = createStackNavigator();
 
 const App = () => {
   const { user, isLoading, userCertainlyChecked } = useUser();
-  // console.log("DSADADAAAAAAAAAAAAAADASDAS", user, isLoading, userCertainlyChecked)
   if (isLoading || !userCertainlyChecked) return <View><Text>Loading...</Text></View>;
   return (
     <NavigationContainer>

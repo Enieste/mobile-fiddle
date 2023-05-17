@@ -1,48 +1,33 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, KeyboardAvoidingView, TextInput, ScrollView, Switch } from 'react-native';
 import get from 'lodash/get';
 import { withNavigationFocus } from '@react-navigation/compat';
 import renderButton from '../components/button';
 import { backgroundMain, fontColor, inputFont, iconFont } from '../colorSets';
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-class Comments extends Component {
+const Comments = () => {
+  const [description, setDescription] = useState('');
+  const [notesForTeacher, setNotesForTeacher] = useState('');
+  const [isForPosting, setIsForPosting] = useState(true);
 
-  constructor(props) {
-    super(props);
+  const navigation = useNavigation();
+  const route = useRoute();
 
-    this.state = {
-      description: '',
-      notesForTeacher: '',
-      isForPosting: true,
-    };
-  }
-
-  onChangeDescription = (text) => {
-    this.setState({
-      description: text
+  useEffect(() => {
+    navigation.setOptions({
+      title: 'Any comments?',
+      headerRight: () => (<View />),
     })
-  };
+  }, [navigation])
 
-  onChangeNotes = (text) => {
-    this.setState({
-      notesForTeacher: text
-    })
-  };
-
-  toggleSwitch = () => {
-    this.setState({
-      isForPosting: !this.state.isForPosting
-    })
-  };
-
-  onNext = () => {
-    const { description, notesForTeacher, isForPosting } = this.state;
-    const videoUri = get(this.props, ['navigation', 'state', 'params', 'videoUri']);
-    const studentIds = get(this.props, ['navigation', 'state', 'params', 'studentIds']);
-    const category = get(this.props, ['navigation', 'state', 'params', 'category']);
-    const practiceItemId = get(this.props, ['navigation', 'state', 'params', 'practiceItemId']);
-    const title = get(this.props, ['navigation', 'state', 'params', 'title']);
-    this.props.navigation.navigate('Summary', {
+  const onNext = () => {
+    const videoUri = get(route, ['params', 'videoUri']);
+    const studentIds = get(route, ['params', 'studentIds']);
+    const category = get(route, ['params', 'category']);
+    const practiceItemId = get(route, ['params', 'practiceItemId']);
+    const title = get(troute, ['params', 'title']);
+    navigation.navigate('Summary', {
       videoUri,
       studentIds,
       title,
@@ -54,61 +39,155 @@ class Comments extends Component {
     });
   };
 
-  render() {
-    return  <View style={styles.page}>
-      <KeyboardAvoidingView style={{ flex: 1, flexDirection: 'column', justifyContent: 'flex-start',}} behavior="padding" enabled   keyboardVerticalOffset={20}>
-        <ScrollView>
-          <View style={styles.container}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.text}>Any comments to describe the video? (this will display with the video)</Text>
-              <TextInput
-                style={styles.textInput}
-                onChangeText={text => this.onChangeDescription(text)}
-                underlineColorAndroid='rgba(0,0,0,0)'
-                value={this.state.description}
-                multiline={true}
-                textAlignVertical={'top'}
+  return  <View style={styles.page}>
+    <KeyboardAvoidingView style={{ flex: 1, flexDirection: 'column', justifyContent: 'flex-start',}} behavior="padding" enabled   keyboardVerticalOffset={20}>
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.text}>Any comments to describe the video? (this will display with the video)</Text>
+            <TextInput
+              style={styles.textInput}
+              onChangeText={setDescription}
+              underlineColorAndroid='rgba(0,0,0,0)'
+              value={description}
+              multiline={true}
+              textAlignVertical={'top'}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.text}>Any comments just for the teacher?</Text>
+            <TextInput
+              style={styles.textInput}
+              onChangeText={setNotesForTeacher}
+              underlineColorAndroid='rgba(0,0,0,0)'
+              value={notesForTeacher}
+              multiline={true}
+              textAlignVertical={'top'}
+            />
+          </View>
+          <View style={styles.switchContainer}>
+            <Text style={styles.text}>
+              Post the video on FiddleQuest?
+            </Text>
+            <View style={styles.switch}>
+              <Switch
+                trackColor={{ false: '#eceeed', true: '#4C92C1' }}
+                thumbColor={isForPosting ? "#ffffff" : "#ffffff"}
+                ios_backgroundColor={inputFont}
+                onValueChange={() => setIsForPosting(isForPosting)}
+                value={isForPosting}
               />
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.text}>Any comments just for the teacher?</Text>
-              <TextInput
-                style={styles.textInput}
-                onChangeText={text => this.onChangeNotes(text)}
-                underlineColorAndroid='rgba(0,0,0,0)'
-                value={this.state.notesForTeacher}
-                multiline={true}
-                textAlignVertical={'top'}
-              />
-            </View>
-            <View style={styles.switchContainer}>
-              <Text style={styles.text}>
-                Post the video on FiddleQuest?
-              </Text>
-              <View style={styles.switch}>
-                <Switch
-                  trackColor={{ false: '#eceeed', true: '#4C92C1' }}
-                  thumbColor={this.state.isForPosting ? "#ffffff" : "#ffffff"}
-                  ios_backgroundColor={inputFont}
-                  onValueChange={this.toggleSwitch}
-                  value={this.state.isForPosting}
-                />
-              </View>
-            </View>
-            <View style={styles.buttonContainer}>
-              { renderButton(this.onNext, 'Next', iconFont) }
             </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
-  }
+          <View style={styles.buttonContainer}>
+            { renderButton(onNext, 'Next', iconFont) }
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </View>
+
 }
 
-Comments.navigationOptions = () => ({
-  title: 'Any comments?',
-  headerRight: <View />,
-});
+class Comments_ extends Component {
+
+  // constructor(props) {
+  //   super(props);
+  //
+  //   this.state = {
+  //     description: '',
+  //     notesForTeacher: '',
+  //     isForPosting: true,
+  //   };
+  // }
+
+  // onChangeDescription = (text) => {
+  //   this.setState({
+  //     description: text
+  //   })
+  // };
+
+  // onChangeNotes = (text) => {
+  //   this.setState({
+  //     notesForTeacher: text
+  //   })
+  // };
+
+  // toggleSwitch = () => {
+  //   this.setState({
+  //     isForPosting: !this.state.isForPosting
+  //   })
+  // };
+
+  // onNext = () => {
+  //   const { description, notesForTeacher, isForPosting } = this.state;
+  //   const videoUri = get(this.props, ['navigation', 'state', 'params', 'videoUri']);
+  //   const studentIds = get(this.props, ['navigation', 'state', 'params', 'studentIds']);
+  //   const category = get(this.props, ['navigation', 'state', 'params', 'category']);
+  //   const practiceItemId = get(this.props, ['navigation', 'state', 'params', 'practiceItemId']);
+  //   const title = get(this.props, ['navigation', 'state', 'params', 'title']);
+  //   this.props.navigation.navigate('Summary', {
+  //     videoUri,
+  //     studentIds,
+  //     title,
+  //     practiceItemId,
+  //     category,
+  //     description : description.trim(),
+  //     notesForTeacher: notesForTeacher.trim(),
+  //     isForPosting
+  //   });
+  // };
+
+  render() {
+    // return  <View style={styles.page}>
+    //   <KeyboardAvoidingView style={{ flex: 1, flexDirection: 'column', justifyContent: 'flex-start',}} behavior="padding" enabled   keyboardVerticalOffset={20}>
+    //     <ScrollView>
+    //       <View style={styles.container}>
+    //         <View style={styles.inputContainer}>
+    //           <Text style={styles.text}>Any comments to describe the video? (this will display with the video)</Text>
+    //           <TextInput
+    //             style={styles.textInput}
+    //             onChangeText={text => this.onChangeDescription(text)}
+    //             underlineColorAndroid='rgba(0,0,0,0)'
+    //             value={this.state.description}
+    //             multiline={true}
+    //             textAlignVertical={'top'}
+    //           />
+    //         </View>
+    //         <View style={styles.inputContainer}>
+    //           <Text style={styles.text}>Any comments just for the teacher?</Text>
+    //           <TextInput
+    //             style={styles.textInput}
+    //             onChangeText={text => this.onChangeNotes(text)}
+    //             underlineColorAndroid='rgba(0,0,0,0)'
+    //             value={this.state.notesForTeacher}
+    //             multiline={true}
+    //             textAlignVertical={'top'}
+    //           />
+    //         </View>
+    //         <View style={styles.switchContainer}>
+    //           <Text style={styles.text}>
+    //             Post the video on FiddleQuest?
+    //           </Text>
+    //           <View style={styles.switch}>
+    //             <Switch
+    //               trackColor={{ false: '#eceeed', true: '#4C92C1' }}
+    //               thumbColor={this.state.isForPosting ? "#ffffff" : "#ffffff"}
+    //               ios_backgroundColor={inputFont}
+    //               onValueChange={this.toggleSwitch}
+    //               value={this.state.isForPosting}
+    //             />
+    //           </View>
+    //         </View>
+    //         <View style={styles.buttonContainer}>
+    //           { renderButton(this.onNext, 'Next', iconFont) }
+    //         </View>
+    //       </View>
+    //     </ScrollView>
+    //   </KeyboardAvoidingView>
+    // </View>
+  }
+}
 
 const styles = StyleSheet.create({
   page: {

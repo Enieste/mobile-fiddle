@@ -1,79 +1,96 @@
-import React, { PureComponent, Component } from 'react';
-import Meteor, { withTracker } from '@meteorrn/core';
+import React, { useState, useCallback, useEffect } from 'react';
+import Meteor, { Mongo, useTracker } from '@meteorrn/core';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, KeyboardAvoidingView, Button, Platform } from 'react-native';
 import get from 'lodash/get';
 import { observer } from 'mobx-react';
 import { getId, itemTitle, listFilter, isTeacher } from '../lib/utils';
-import { withNavigationFocus } from '@react-navigation/compat';
 import SearchInput from '../components/searchField';
 import { backgroundGray, backgroundMain, fontColor, inputFont, iconFont } from '../colorSets';
 import NewSongIcon from '../components/icons/newSongIcon';
 import appStore from '../mobx/appStore';
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 
-const songSelectObserved = observer(class SongSelect extends Component {
+const SongSelect = observer(() => {
+  const [filter, setFilter] = useState('');
+  const [customTitle, setCustomTitle] = useState('');
 
-  constructor(props) {
-    super(props);
+  const route = useRoute();
+  const navigation = useNavigation()
 
-    this.state = {
-      filter: '',
-      clicked: false,
-      customTitle: '',
+  const { practiceItems, user, ready, category } = useTracker(() => {
+    const category = get(route, ['params', 'category']);
+    const subscription = Meteor.subscribe('PracticeItemsForType', category.id);
+    return {
+      practiceItems: subscription.ready() &&
+        new Mongo.Collection('practiceItems')
+          .find({}, { sort: category.id === 'song' ? { 'recordingsMeta.0.name': 1 } : [['level', 'asc'], ['unit', 'asc']] }).fetch(),
+      user: Meteor.user(),
+      ready: subscription.ready(),
+      category,
     };
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (this.props.isFocused && !nextProps.isFocused && appStore.get('modalVisible')) {
-      appStore.hideModal();
-      this.setState({
-        customTitle: '',
-      });
-    }
-  }
-
-  selectSong = (item) => {
-    const { customTitle, _id } = item;
-    const { category, user } = this.props;
-    const title = customTitle ? customTitle : itemTitle(item, category.id);
-    const videoUri = get(this.props, ['navigation', 'state', 'params', 'videoUri']);
-    const studentIds = get(this.props, ['navigation', 'state', 'params', 'studentIds']);
-    this.props.navigation.navigate(isTeacher(user) ? 'Summary' : 'Comments', { videoUri, studentIds, title, practiceItemId: _id, category });
-  };
-
-  songFilter = (str) => {
-    this.setState({
-      filter: str,
-    });
-  };
-
-  handleCustomSongSubmit = () => {
-    const { customTitle } = this.state;
-    appStore.hideModal();
-    this.setState({
-      customTitle: ''
-    });
-    this.selectSong({
-      customTitle
-    });
-  };
-
-  handleCustomTitleChange = text => this.setState({
-    customTitle: text
   });
 
-  cancelModal = () => {
-    appStore.hideModal();
-    this.setState({customTitle: ''});
+  const NewTitleButton = () => {
+    const  onPress = () => {
+      const isOpen = appStore.get('modalVisible');
+      appStore.setModalVisible(!isOpen);
+    };
+
+    return (<TouchableOpacity
+      style={{ marginRight: 10 }}
+      onPress={onPress}
+    >
+      <NewSongIcon />
+    </TouchableOpacity>)
   };
 
-  modalBottomRender = () => {
+  useEffect(() => {
+    const title = get(route, ['params', 'category']);
+    const isSong = get(title, 'id') === 'song';
+    navigation.setOptions({
+      title: `Select ${isSong ? 'Song' : 'Skill'}`,
+      headerRight: () => (isSong ? <NewTitleButton /> : <View />),
+    })
+  }, [])
+
+  useFocusEffect(
+    (useCallback(() => {
+      return () => {
+        if (appStore.get('modalVisible')) {
+          appStore.hideModal();
+          setCustomTitle('');
+        }
+      }
+    }, []))
+  );
+
+  const selectSong = (item) => {
+    const { customTitle, _id } = item;
+    const title = customTitle ? customTitle : itemTitle(item, category.id);
+    const videoUri = get(route, ['params', 'videoUri']);
+    const studentIds = get(route, ['params', 'studentIds']);
+    navigation.navigate(isTeacher(user) ? 'Summary' : 'Comments', { videoUri, studentIds, title, practiceItemId: _id, category });
+  };
+
+  const handleCustomSongSubmit = () => {
+    appStore.hideModal();
+    setCustomTitle('');
+    selectSong({customTitle});
+  };
+
+  const cancelModal = () => {
+    appStore.hideModal();
+    setCustomTitle('');
+  };
+
+  const modalBottomRender = () => {
     return Platform.select({
       ios: () => {
         return (<View style={styles.modalBottom}>
           <TouchableOpacity
             style={[styles.button, styles.firstButton]}
-            onPress={this.handleCustomSongSubmit}
-            disabled={!this.state.customTitle}
+            onPress={handleCustomSongSubmit}
+            disabled={!customTitle}
           >
             <Text style={styles.modalButtonText}>Submit</Text>
           </TouchableOpacity>
@@ -88,12 +105,12 @@ const songSelectObserved = observer(class SongSelect extends Component {
       android: () => {
         return (<View style={styles.modalBottom}>
           <TouchableOpacity
-            disabled={!this.state.customTitle}
+            disabled={!customTitle}
             style={[styles.androidButton, styles.androidButtonRight]}
           >
             <Button
-              disabled={!this.state.customTitle}
-              onPress={this.handleCustomSongSubmit}
+              disabled={!customTitle}
+              onPress={handleCustomSongSubmit}
               title="Submit"
               color="#4C92C1"
             />
@@ -102,7 +119,7 @@ const songSelectObserved = observer(class SongSelect extends Component {
             <Button
               title="Cancel"
               color="#F3172D"
-              onPress={this.cancelModal}
+              onPress={cancelModal}
             />
           </TouchableOpacity>
         </View>)
@@ -110,93 +127,54 @@ const songSelectObserved = observer(class SongSelect extends Component {
     })();
   };
 
-  render() {
-    const isModalOpen = appStore.get('modalVisible');
-    const { category } = this.props;
-    const filteredSongs = this.props.practiceItems && listFilter(this.props.practiceItems, itemTitle, this.state.filter);
-    return <View style={styles.page}>
-      { this.props.practiceItems.length ? <View style={styles.container}>
-        <Modal
-          transparent={true}
-          visible={isModalOpen}
-          onRequestClose={this.cancelModal}>
-          <KeyboardAvoidingView behavior="height" style={styles.modalContainer}>
-            <View style={styles.modalView}>
-              <View style={[styles.modalTop, Platform.OS === 'android' && styles.androidModalTop]}>
-                <View style={styles.modalTextContainer}>
-                  <Text style={styles.modalBoldText}>Name the Song</Text>
-                  <Text style={styles.modalText}>Song name not on the list?{'\n'}Enter it here.</Text>
-                </View>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder='Name'
-                  underlineColorAndroid='rgba(0,0,0,0)'
-                  autoFocus={true}
-                  onChangeText={this.handleCustomTitleChange}
-                  value={this.state.customTitle}
-                />
+  const isModalOpen = appStore.get('modalVisible');
+  const filteredSongs = practiceItems && listFilter(practiceItems, itemTitle, filter);
+  return <View style={styles.page}>
+    { practiceItems.length ? <View style={styles.container}>
+      <Modal
+        transparent={true}
+        visible={isModalOpen}
+        onRequestClose={cancelModal}>
+        <KeyboardAvoidingView behavior="height" style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <View style={[styles.modalTop, Platform.OS === 'android' && styles.androidModalTop]}>
+              <View style={styles.modalTextContainer}>
+                <Text style={styles.modalBoldText}>Name the Song</Text>
+                <Text style={styles.modalText}>Song name not on the list?{'\n'}Enter it here.</Text>
               </View>
-              { this.modalBottomRender() }
+              <TextInput
+                style={styles.modalInput}
+                placeholder='Name'
+                underlineColorAndroid='rgba(0,0,0,0)'
+                autoFocus={true}
+                onChangeText={setCustomTitle}
+                value={customTitle}
+              />
             </View>
-          </KeyboardAvoidingView>
-        </Modal>
-        <SearchInput
-          onChange={this.songFilter}
-          value={this.state.filter}
-        />
-        <FlatList
-          style={styles.list}
-          data={filteredSongs}
-          renderItem={({ item }) => <TouchableOpacity onPress={() => this.selectSong(item)}>
-            <View style={styles.song}>
-              <Text style={styles.songName} key={get(item, '_id')}>{itemTitle(item, category.id)}</Text>
-            </View>
-          </TouchableOpacity>}
-          keyExtractor={getId}
-        />
-      </View> : <View style={styles.loading}>
-        <Text> {this.props.ready ? 'No items of this subtype are available' : 'Loading...'}</Text>
-      </View> }
-    </View>
-  }
+            { modalBottomRender() }
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+      <SearchInput
+        onChange={setFilter}
+        value={filter}
+      />
+      <FlatList
+        style={styles.list}
+        data={filteredSongs}
+        renderItem={({ item }) => <TouchableOpacity onPress={() => selectSong(item)}>
+          <View style={styles.song}>
+            <Text style={styles.songName} key={get(item, '_id')}>{itemTitle(item, category.id)}</Text>
+          </View>
+        </TouchableOpacity>}
+        keyExtractor={getId}
+      />
+    </View> : <View style={styles.loading}>
+      <Text> {ready ? 'No items of this subtype are available' : 'Loading...'}</Text>
+    </View> }
+  </View>
+
 });
-
-const songSelectContainer = withTracker(params => {
-  const category = get(params, ['navigation', 'state', 'params', 'category']);
-  const subscription = Meteor.subscribe('PracticeItemsForType', category.id);
-  return {
-    practiceItems: subscription.ready() &&
-      Meteor.collection('practiceItems')
-        .find({}, { sort: category.id === 'song' ? { 'recordingsMeta.0.name': 1 } : [['level', 'asc'], ['unit', 'asc']] }),
-    user: Meteor.user(),
-    ready: subscription.ready(),
-    category,
-  };
-})(songSelectObserved);
-
-class NewTitleButton extends PureComponent {
-  onPress = () => {
-    const isOpen = appStore.get('modalVisible');
-    appStore.setModalVisible(!isOpen);
-  };
-  render() {
-    return (<TouchableOpacity
-      style={{ marginRight: 10 }}
-      onPress={this.onPress}
-    >
-      <NewSongIcon />
-    </TouchableOpacity>)
-  }
-}
-
-songSelectContainer.navigationOptions =  (navigation) => {
-  const title = get(navigation, ['navigation', 'state', 'params', 'category']);
-  const isSong = get(title, 'id') === 'song';
-  return ({
-    title: `Select ${isSong ? 'Song' : 'Skill'}`,
-    headerRight: isSong ? <NewTitleButton /> : <View />,
-  })
-};
 
 const styles = StyleSheet.create({
   page: {
@@ -309,4 +287,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default withNavigationFocus(songSelectContainer);
+export default SongSelect;

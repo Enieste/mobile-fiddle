@@ -54,6 +54,7 @@ class Summary extends PureComponent {
       uploadedByNonTeacher
     });
     this.props.navigation.popToTop();
+    // navigation.dispatch(StackActions.popToTop());
   };
 
   composeText = () => {

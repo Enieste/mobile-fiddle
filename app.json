@@ -12,7 +12,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "platforms": ["android", "ios"],
+    "platforms": [
+      "android",
+      "ios"
+    ],
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -24,13 +27,15 @@
           "cameraPermission": "Allow the app to access your camera.",
           "microphonePermission": "Allow the app to access your microphone."
         }
-      ], [
+      ],
+      [
         "expo-media-library",
         {
           "photosPermission": "Allow the app to access your videos.",
           "savePhotosPermission": "Allow the app to save videos."
         }
-      ], [
+      ],
+      [
         "expo-screen-orientation",
         {
           "initialOrientation": "PORTRAIT"
@@ -47,6 +52,10 @@
         "image": "./src/assets/splash2.png",
         "backgroundColor": "#eeeeee",
         "resizeMode": "contain"
+      },
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow the app to access your videos.",
+        "NSPhotoLibraryAddUsageDescription": "Allow the app to save videos."
       }
     },
     "android": {
@@ -67,14 +76,19 @@
       },
       "package": "com.fiddlequest.teacher_app",
       "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "924b9cb0-92a8-11e8-985a-e556e745359a"
+      }
     }
   }
 }

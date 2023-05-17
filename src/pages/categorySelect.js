@@ -1,14 +1,14 @@
-import React, { Component, PureComponent } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import get from 'lodash/get';
 import omit from 'lodash/omit';
-//import { NavigationActions, StackActions, withNavigationFocus } from '@react-navigation/compat';
 import { HeaderBackButton } from 'react-navigation-stack';
 import { AndroidBackHandler } from 'react-navigation-backhandler';
 import { backgroundMain, fontColor } from '../colorSets';
-import { getNavigatorRef } from "../entry";
 import appStore from "../mobx/appStore";
-import { NavigationActions, StackActions, withNavigationFocus } from "@react-navigation/compat";
+import { withNavigationFocus } from "@react-navigation/compat";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useGoBack } from "../lib/utils";
 
 
 const categories = [
@@ -57,13 +57,23 @@ const categories = [
 
 const sections = ['Songs', 'Skills', 'Social'];
 
-class CategorySelect extends Component {
+const CategorySelect = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
 
-  selectCategory = (category) => {
+  useEffect(() => {
+    navigation.setOptions({
+      title: 'Select Category',
+      headerRight: () => (<View />),
+      ...appStore.get('isOneStudent') && { headerLeft: () => (BackButton) }
+    })
+  }, [navigation])
+
+  const selectCategory = (category) => {
     const path = category.section === 'Social' ? 'Comments' : 'SongSelect';
-    const videoUri = get(this.props, ['navigation', 'state', 'params', 'videoUri']);
-    const studentIds = get(this.props, ['navigation', 'state', 'params', 'studentIds']);
-    this.props.navigation.navigate(path, {
+    const videoUri = get(route, ['params', 'videoUri']);
+    const studentIds = get(route, ['params', 'studentIds']);
+    navigation.navigate(path, {
       videoUri,
       studentIds,
       category,
@@ -71,16 +81,25 @@ class CategorySelect extends Component {
     });
   };
 
-  onBackButtonPressAndroid = () => {
-    const isOnly = get(this.props, ['navigation', 'state', 'params', 'onlyStudent']);
+  const back = useGoBack();
+
+  const BackButton = (props) => {
+      return <HeaderBackButton
+        {...omit(props, 'onPress')}
+        onPress={back}
+      />
+    };
+
+  const onBackButtonPressAndroid = () => {
+    const isOnly = get(route, ['params', 'onlyStudent']);
     if (isOnly) {
-      this.props.navigator.popToTop();
+      back();
       return true;
     }
     return false;
   };
 
-  renderList = (section) => {
+  const renderList = (section) => {
     const filteredCategories = categories.filter(c => c.section === section);
     return <View key={section}>
       <View style={styles.sectionLabel}>
@@ -90,7 +109,7 @@ class CategorySelect extends Component {
         scrollEnabled={false}
         style={styles.list}
         data={filteredCategories}
-        renderItem={({ item }) => <TouchableOpacity onPress={() => this.selectCategory(item)}>
+        renderItem={({ item }) => <TouchableOpacity onPress={() => selectCategory(item)}>
           <View style={styles.category}>
             <Text style={styles.categoryName} key={item.id}>{item.title}</Text>
           </View>
@@ -100,41 +119,16 @@ class CategorySelect extends Component {
     </View>
   };
 
-
-  render() {
-    return <AndroidBackHandler onBackPress={this.onBackButtonPressAndroid}>
-      <View style={styles.page}>
-        { categories.length ? <View style={styles.container}>
-            { sections.map(section => this.renderList(section)) }
-        </View> : <View style={styles.loading}>
-          <Text>Loading...</Text>
-        </View> }
-      </View>
-    </AndroidBackHandler>
-  }
+  return <AndroidBackHandler onBackPress={onBackButtonPressAndroid}>
+    <View style={styles.page}>
+      { categories.length ? <View style={styles.container}>
+        { sections.map(section => renderList(section)) }
+      </View> : <View style={styles.loading}>
+        <Text>Loading...</Text>
+      </View> }
+    </View>
+  </AndroidBackHandler>
 }
-
-class BackButton extends PureComponent {
-  onPress = () => {
-    const goBack = () => getNavigatorRef().dispatch(StackActions.reset({ // this is react-navigation's dispatch
-      index: 0,
-      actions: [NavigationActions.navigate({routeName: 'Home'})],
-    }));
-    goBack();
-  };
-  render() {
-    return <HeaderBackButton
-      {...omit(this.props, 'onPress')}
-      onPress={this.onPress}
-    />
-  }
-}
-
-CategorySelect.navigationOptions = () => ({
-  title: 'Select Category',
-  headerRight: <View />,
-  ...appStore.get('isOneStudent') && { headerLeft: BackButton }
-});
 
 const styles = StyleSheet.create({
   page: {

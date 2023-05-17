@@ -4,6 +4,8 @@ import initial from 'lodash/initial';
 import last from 'lodash/last';
 import first from 'lodash/first';
 import moment from 'moment';
+import { StackActions, useNavigation } from "@react-navigation/native";
+import { useCallback } from "react";
 
 export const TEACHER = 'teacher';
 export const STUDENT = 'student';
@@ -50,5 +52,13 @@ export const isIndependent = user => accountType(user) === STUDENT && !get(user,
 export const getTeacherId = user => get(user, ['profile', 'teacherId']);
 
 export const userName = user => get(user, ['profile', 'firstName']);
+
+export const goBack = (navigation) => navigation.dispatch(StackActions.popToTop());
+export const useGoBack = () => {
+  const navigation = useNavigation();
+  return useCallback(() => {
+    goBack(navigation);
+  }, [navigation]);
+};
 
 
