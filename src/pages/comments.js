@@ -74,7 +74,7 @@ const Comments = () => {
                 trackColor={{ false: '#eceeed', true: '#4C92C1' }}
                 thumbColor={isForPosting ? "#ffffff" : "#ffffff"}
                 ios_backgroundColor={inputFont}
-                onValueChange={() => setIsForPosting(isForPosting)}
+                onValueChange={() => setIsForPosting((v) => !v)}
                 value={isForPosting}
               />
             </View>

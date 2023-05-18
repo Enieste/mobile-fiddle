@@ -4,7 +4,7 @@ import initial from 'lodash/initial';
 import last from 'lodash/last';
 import first from 'lodash/first';
 import moment from 'moment';
-import { StackActions, useNavigation } from "@react-navigation/native";
+import { StackActions, useNavigation, useRoute } from "@react-navigation/native";
 import { useCallback } from "react";
 
 export const TEACHER = 'teacher';
@@ -61,4 +61,16 @@ export const useGoBack = () => {
   }, [navigation]);
 };
 
-
+export const useRouteProps = () => {
+  const route = useRoute();
+  return {
+    title: get(route, ['params', 'title']),
+    studentIds: get(route, ['params', 'studentIds']),
+    description: get(route, ['params', 'description']),
+    category: get(route, ['params', 'category']),
+    notesForTeacher: get(route, ['params', 'notesForTeacher']),
+    localVideoUri: get(route, ['params', 'videoUri']),
+    practiceItemId: get(route, ['params', 'practiceItemId']),
+    isForPosting: get(route, ['params', 'isForPosting'])
+  }
+};

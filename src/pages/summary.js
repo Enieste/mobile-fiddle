@@ -1,46 +1,64 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, ScrollView } from 'react-native';
-import Meteor, { withTracker } from '@meteorrn/core';
-import { withNavigationFocus } from '@react-navigation/compat';
+import Meteor, { Mongo, useTracker, withTracker } from '@meteorrn/core';
+import { StackActions } from '@react-navigation/compat';
 import get from 'lodash/get';
-import { getId, studentNamesToString, isTeacher, isIndependent, userName, getTeacherId } from '../lib/utils';
+import {
+  getId,
+  studentNamesToString,
+  isTeacher,
+  isIndependent,
+  userName,
+  getTeacherId,
+  useRouteProps
+} from '../lib/utils';
 import uploadItem from '../lib/upload';
 import { backgroundMain } from '../colorSets';
+import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 
 const BlueUploadIcon = Platform.select({
   ios: () => require('../components/icons/blueIosUploadIcon').default,
   android: () => require('../components/icons/blueUploadAndroid').default,
 })();
 
-class Summary extends PureComponent {
-  state = {
-    clicked: false,
-  };
+const Summary = () => {
+  const [clicked, setClicked] = useState();
 
-  componentWillReceiveProps = next => {
-    if(!this.props.isFocused && next.isFocused) {
-      this.setState({
-        clicked: false,
-      });
-    }
-  }
+  const isFocused = useIsFocused();
+  const navigation = useNavigation();
+  const {
+    title,
+    studentIds,
+    description,
+    category,
+    notesForTeacher,
+    localVideoUri,
+    practiceItemId,
+    isForPosting
+  } = useRouteProps();
 
-  confirmUpload = () => {
-    const { user } = this.props;
-    if (!this.props.isFocused) return; // it may be a rogue callback from previous screen if clicked again quickly
-    this.setState({
-      clicked: true,
-    });
-    const localVideoUri = get(this.props, ['navigation', 'state', 'params', 'videoUri']);
-    const studentIds = get(this.props, ['navigation', 'state', 'params', 'studentIds']);
-    const title = get(this.props, ['navigation', 'state', 'params', 'title']);
-    const practiceItemId = get(this.props, ['navigation', 'state', 'params', 'practiceItemId']);
+  const { user, students, ready } = useTracker(() => {
+    const user = Meteor.user();
+    const studentsSub = Meteor.subscribe(isTeacher(user) ? 'MyStudents' : 'Children');
+    return {
+      user,
+      students: studentsSub.ready() && new Mongo.Collection('users').find({ 'profile.accountType': 'student' }).fetch(),
+      ready: studentsSub.ready(),
+    };
+  });
+
+  // if(!this.props.isFocused && next.isFocused) {
+  //   this.setState({
+  //     clicked: false,
+  //   });
+  // } TODO
+
+  const confirmUpload = () => {
+    if (!isFocused) return; // it may be a rogue callback from previous screen if clicked again quickly
+    setClicked(true);
     const teacherId = isTeacher(user) ? getId(user) : (isIndependent(user) ?
-      getTeacherId(user) : studentIds.map(id => getTeacherId(this.props.students
+      getTeacherId(user) : studentIds.map(id => getTeacherId(students
         .find(student => get(student, '_id') === id))).filter(Boolean)[0]);
-    const description = get(this.props, ['navigation', 'state', 'params', 'description']);
-    const notesForTeacher = get(this.props, ['navigation', 'state', 'params', 'notesForTeacher']);
-    const isForPosting = get(this.props, ['navigation', 'state', 'params', 'isForPosting']);
     const uploadedByNonTeacher = !isTeacher(user);
     uploadItem({
       teacherId: teacherId ? teacherId : 'DEFAULT',
@@ -53,68 +71,44 @@ class Summary extends PureComponent {
       notesForTeacher,
       uploadedByNonTeacher
     });
-    this.props.navigation.popToTop();
-    // navigation.dispatch(StackActions.popToTop());
+    navigation.dispatch(StackActions.popToTop());
   };
 
-  composeText = () => {
-    const { user } = this.props;
-    const title = get(this.props, ['navigation', 'state', 'params', 'title']);
-    const studentsIds = get(this.props, ['navigation', 'state', 'params', 'studentIds']);
-    const category = get(this.props, ['navigation', 'state', 'params', 'category']);
-    const description = get(this.props, ['navigation', 'state', 'params', 'description']);
-    const notesForTeacher = get(this.props, ['navigation', 'state', 'params', 'notesForTeacher']);
-    const studentNames = studentsIds.map(id => get(this.props.students
+  const composeText = () => {
+    const studentNames = studentIds.map(id => get(students
       .find(student => get(student, '_id') === id), ['profile', 'firstName']));
     const isSkill = category.secton === 'Skills';
     return (<ScrollView bounces={false} contentContainerStyle={styles.textContainer}>
       <View style={styles.textContainer}>
-      <Text style={[styles.text, styles.bold]}>{isIndependent(user) ? userName(user) : studentNamesToString(studentNames)}</Text>
-      <Text style={styles.text}>{`playing${isSkill ? ' ' + category.title + ' Skill' : ''}`}</Text>
-      <Text style={[styles.text, styles.bold]}>{title}</Text>
-      {!!description && <Text style={styles.text}>"{description}"</Text>}
-      {!!notesForTeacher && <Text style={[styles.text, styles.bold]}>Only for teacher:</Text>}
-      {!!notesForTeacher && <Text style={styles.text}>"{notesForTeacher}"</Text>}
+        <Text style={[styles.text, styles.bold]}>{isIndependent(user) ? userName(user) : studentNamesToString(studentNames)}</Text>
+        <Text style={styles.text}>{`playing${isSkill ? ' ' + category.title + ' Skill' : ''}`}</Text>
+        <Text style={[styles.text, styles.bold]}>{title}</Text>
+        {!!description && <Text style={styles.text}>"{description}"</Text>}
+        {!!notesForTeacher && <Text style={[styles.text, styles.bold]}>Only for teacher:</Text>}
+        {!!notesForTeacher && <Text style={styles.text}>"{notesForTeacher}"</Text>}
       </View>
     </ScrollView>);
   };
 
-  render() {
-    const title = get(this.props, ['navigation', 'state', 'params', 'title']);
-    const studentsIds = get(this.props, ['navigation', 'state', 'params', 'studentIds']);
-    const localVideoUri = get(this.props, ['navigation', 'state', 'params', 'videoUri']);
-    return <View style={styles.page}>
-      { this.props.ready && this.props.students && title && studentsIds && localVideoUri &&
-      <View style={styles.modal}>
-        {this.composeText()}
-      </View>}
-      { this.props.ready &&
-        <View style={styles.iconContainer}>
-          <TouchableOpacity
-            style={styles.buttonContainer}
-            onPress={this.confirmUpload}
-            disabled={!this.props.students && !title && !localVideoUri || this.state.clicked}
-          >
-            <BlueUploadIcon />
-          </TouchableOpacity>
-        </View> }
-    </View>
-  }
+  return <View style={styles.page}>
+    { ready && students && title && studentIds && localVideoUri &&
+    <View style={styles.modal}>
+      {composeText()}
+    </View>}
+    { ready &&
+    <View style={styles.iconContainer}>
+      <TouchableOpacity
+        style={styles.buttonContainer}
+        onPress={confirmUpload}
+        disabled={!students && !title && !localVideoUri || clicked}
+      >
+        <BlueUploadIcon />
+      </TouchableOpacity>
+    </View> }
+  </View>
 }
 
-// Size is important here. Smaller icons doesn't work with iphone 6 and 7. So we scale them in svg. Even 5% smaller broke TouchableOpacity.
-
-const summaryContainer = withTracker(params => {
-  const user = Meteor.user();
-  const studentsSub = Meteor.subscribe(isTeacher(user) ? 'MyStudents' : 'Children');
-  return {
-    user,
-    students: studentsSub.ready() && Meteor.collection('users').find({ 'profile.accountType': 'student' }),
-    ready: studentsSub.ready(),
-  };
-})(Summary);
-
-export default withNavigationFocus(summaryContainer);
+export default Summary;
 
 const styles = StyleSheet.create({
   page: {

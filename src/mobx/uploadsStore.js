@@ -1,8 +1,12 @@
-import { observable, values } from 'mobx';
+import { makeAutoObservable, values } from 'mobx';
 
 class UploadsStore {
 
-  uploads = observable(new Map());
+  uploads = new Map();
+
+  constructor() {
+    makeAutoObservable(this)
+  }
 
   set = (k, v) => this.uploads.set(k, v);
 

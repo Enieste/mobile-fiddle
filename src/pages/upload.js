@@ -7,7 +7,6 @@ import { backgroundMain, backgroundGray, iconFont, backgroundTitle } from '../co
 import WhiteMenu from '../components/icons/whitemenu';
 import CameraIcon from '../components/icons/camera';
 import uploadStore from '../mobx/uploadsStore';
-import permissionAlert from '../components/permissionAlert';
 import { useNavigation } from '@react-navigation/native';
 import get from 'lodash/get';
 
