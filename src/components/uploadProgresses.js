@@ -1,6 +1,8 @@
-import React, { useCallback, useEffect } from 'react';
-import { View, FlatList, ProgressBarAndroid, ProgressViewIOS, Text, StyleSheet, Platform } from 'react-native';
-import Meteor, { useTracker } from '@meteorrn/core';
+import React, { useCallback } from 'react';
+import { View, FlatList, Text, StyleSheet, Platform } from 'react-native';
+import { ProgressBar } from '@react-native-community/progress-bar-android';
+import { ProgressView } from "@react-native-community/progress-view";
+import Meteor, { Mongo, useTracker } from '@meteorrn/core';
 import { observer } from 'mobx-react';
 import { autorun } from 'mobx';
 import get from 'lodash/get';
@@ -23,7 +25,7 @@ const UploadsView = () => {
     const studentsSub = isTeacher(user) ? Meteor.subscribe('MyStudents') : Meteor.subscribe('Children');
     return {
       user,
-      students: studentsSub.ready() && Meteor.collection('users').find({ 'profile.accountType': 'student' }),
+      students: studentsSub.ready() && new Mongo.Collection('users').find({ 'profile.accountType': 'student' }).fetch(),
     };
   });
 
@@ -31,6 +33,8 @@ const UploadsView = () => {
       return () => uploadsStore.clearCompleted();
     }, [])
   );
+
+  const uploads = uploadsStore.list();
 
   const composeUploadText = (item) => {
     const studentsIds = item.studentIds;
@@ -42,14 +46,14 @@ const UploadsView = () => {
 // https://github.com/oblador/react-native-image-progress TODO change
   const progressBarRender = (progress) => {
     return Platform.select({
-      ios: () => <ProgressViewIOS
+      ios: () => <ProgressView
         progress={progress}
         progressViewStyle='bar'
         trackTintColor="#C1C1C1"
         progressTintColor={iconFont}
         style={styles.iosMargin}
       />,
-      android: () => <ProgressBarAndroid
+      android: () => <ProgressBar
         progress={progress}
         styleAttr='Horizontal'
         indeterminate={false}
@@ -72,8 +76,6 @@ const UploadsView = () => {
     </View>
   }
 
-  const { uploads } = this.props;
-
   return students ? <FlatList
     style={{ width: '100%'}}
     data={uploads}
@@ -88,7 +90,7 @@ const UploadProgresses = observer(() => {
   const uploads = uploadsStore.list();
   return <View style={styles.container}>
     { uploads.length ?
-      <UploadsView uploads={uploads} key='container' />
+      <UploadsView key='container' />
       : <View style={styles.placeholderContainer}>
         <Text style={styles.text}>
           Your queue is empty.{"\n"}All your videos have been uploaded!

@@ -26,7 +26,7 @@ const Comments = () => {
     const studentIds = get(route, ['params', 'studentIds']);
     const category = get(route, ['params', 'category']);
     const practiceItemId = get(route, ['params', 'practiceItemId']);
-    const title = get(troute, ['params', 'title']);
+    const title = get(route, ['params', 'title']);
     navigation.navigate('Summary', {
       videoUri,
       studentIds,

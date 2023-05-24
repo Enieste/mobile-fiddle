@@ -1,4 +1,6 @@
 package com.fiddlequest.teacher_app;
+import com.shahenlibrary.RNVideoProcessingPackage;
+
 
 import android.app.Application;
 import android.content.res.Configuration;
@@ -32,7 +34,10 @@ public class MainApplication extends Application implements ReactApplication {
         List<ReactPackage> packages = new PackageList(this).getPackages();
         // Packages that cannot be autolinked yet can be added manually here, for example:
         // packages.add(new MyReactNativePackage());
-        return packages;
+        
+    packages.add(new RNVideoProcessingPackage());
+    return packages;
+    
       }
 
       @Override

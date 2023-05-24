@@ -40,7 +40,10 @@
         {
           "initialOrientation": "PORTRAIT"
         }
-      ]
+      ],
+
+      "expo-build-properties",
+      "@config-plugins/ffmpeg-kit-react-native"
     ],
     "ios": {
       "supportsTablet": true,

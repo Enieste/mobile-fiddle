@@ -3,6 +3,7 @@ export const sendFile = (presignedurl,
                          onSuccess,
                          onFail,
                          onProgress) => {
+  console.log("presignedurl", presignedurl)
   const xhr = new XMLHttpRequest();
   xhr.upload.addEventListener('progress', (e) => {
     onProgress(e.loaded, e.total);

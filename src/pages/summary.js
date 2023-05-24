@@ -60,17 +60,22 @@ const Summary = () => {
       getTeacherId(user) : studentIds.map(id => getTeacherId(students
         .find(student => get(student, '_id') === id))).filter(Boolean)[0]);
     const uploadedByNonTeacher = !isTeacher(user);
-    uploadItem({
-      teacherId: teacherId ? teacherId : 'DEFAULT',
-      studentIds,
-      localVideoUri,
-      title,
-      practiceItemId,
-      isForPosting,
-      description,
-      notesForTeacher,
-      uploadedByNonTeacher
-    });
+    const startUpload = () => {
+      void uploadItem({
+        teacherId: teacherId ? teacherId : 'DEFAULT',
+        studentIds,
+        localVideoUri,
+        title,
+        practiceItemId,
+        isForPosting,
+        description,
+        notesForTeacher,
+        uploadedByNonTeacher
+      }).catch(err => {
+        console.error("Error from uploadItem", err)
+      });
+    }
+    startUpload();
     navigation.dispatch(StackActions.popToTop());
   };
 
