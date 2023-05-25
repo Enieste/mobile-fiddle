@@ -5,7 +5,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import 'react-native-gesture-handler';
 import Expo from 'expo';
-import AppLoading from 'expo-app-loading';
 import SignIn from './src/pages/signIn';
 import SignOut from './src/pages/signOut';
 import UploadPage from './src/pages/upload';
@@ -22,6 +21,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from 'expo-splash-screen';
 import WhiteMenu from "./src/components/icons/whitemenu";
+import { Camera } from "expo-camera";
 
 const development = 'ws://localhost:3000/websocket';
 const staging = 'wss://app.staging.fiddlequest.com/websocket';

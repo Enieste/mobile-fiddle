@@ -6,7 +6,6 @@ import get from 'lodash/get';
 import { accountType, childrenIds, TEACHER, STUDENT } from "../lib/utils";
 import { useKeepAwake } from 'expo-keep-awake';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { StackActions } from "@react-navigation/compat";
 
 import appStore from '../mobx/appStore';
 
@@ -56,16 +55,16 @@ const CachingVideo = () => {
     if (uploadedVideoInfo) {
       if (isAndroid && uploadedVideoInfo.rotation % rotationModulus !==0) {
         nonLandscapeAlert();
-        navigation.dispatch(StackActions.popToTop());
-        throw 'nonLandscapeVideo';
+        navigation.canGoBack();
+        // throw 'nonLandscapeVideo';
       }
 
       //ProcessingManager.getVideoInfo(result.uri) for ios
 
       if (uploadedVideoInfo.height > uploadedVideoInfo.width) {
         nonLandscapeAlert();
-        navigation.dispatch(StackActions.popToTop());
-        throw 'nonLandscapeVideo';
+        navigation.canGoBack();
+        // throw 'nonLandscapeVideo';
       }
 
       createPath(navigation, uploadedVideoInfo.uri, user);

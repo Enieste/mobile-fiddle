@@ -13,6 +13,7 @@ class UploadsStore {
   get = k => this.uploads.get(k);
 
   compressComplete = (key) => {
+    console.log('compressionComplete key!', key, this.get(key))
     this.set(key, {
       ...this.get(key),
       compressing: false,

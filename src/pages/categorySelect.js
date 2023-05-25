@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import get from 'lodash/get';
 import omit from 'lodash/omit';
-import { HeaderBackButton } from 'react-navigation-stack';
+import { HeaderBackButton } from '@react-navigation/elements';
 import { AndroidBackHandler } from 'react-navigation-backhandler';
 import { backgroundMain, fontColor } from '../colorSets';
 import appStore from "../mobx/appStore";

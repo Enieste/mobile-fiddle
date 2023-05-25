@@ -67,11 +67,12 @@ const useToggleOrientationMode = () => {
 const CameraMode = () => {
   const [shooting, setShooting] = useState(false);
   const [type, setType] = useState(CameraType.back);
-  const [isPermGranted, setPermGranted] = useState(false);
+  const [isPermGranted, setPermGranted] = useState(null);
   const [isOrientationVertical, setIsOrientationVertical] = useState(true);
-  const [ratio, setRatio] = useState('');
-  const [width, setWidth] = useState(null);
-  const [height, setHeight] = useState(null);
+  const [ratio, setRatio] = useState(undefined);
+  const [width, setWidth] = useState(undefined);
+  const [height, setHeight] = useState(undefined);
+  console.log('width', width, 'height', height, 'ratio', ratio)
 
   const navigation = useNavigation();
 
@@ -86,9 +87,21 @@ const CameraMode = () => {
   ];
 
   useEffect(() => {
+
     const askPermissions = async () => {
+      if (!ps.map(([p]) => !!p).every(Boolean)) {
+        console.log('permissions not ready to read');
+        return;
+      }
+      console.log('permissions ready to read');
       const res = await Promise.all(
-        ps.map(async ([p, ask]) => !p.granted ? (await ask()).granted : true)
+        ps.map(async ([p, ask]) => {
+          return !p.granted ? (await (async () => {
+            const perms = await ask();
+            if (!perms) throw new Error('perms are certainly here but they are not here')
+            return perms;
+          })()).granted : true
+        })
       );
       if (res.every(Boolean)) {
         setPermGranted(true);
@@ -99,7 +112,7 @@ const CameraMode = () => {
       }
     }
     askPermissions();
-  })
+  }, [...ps])
 
   const cameraRef = useRef(null);
 
@@ -142,7 +155,8 @@ const CameraMode = () => {
 
   };
 
-  const onCameraReady = async () => {
+  const onCameraReady = async (c) => {
+    console.log('onCameraReadyonCameraReady', c)
     await orientationSet(Dimensions.get('window'));
   };
 
@@ -200,6 +214,9 @@ const CameraMode = () => {
     goBack();
   };
 
+  // don't draw camera in the background
+  if (!isFocused) return null;
+
   if (isPermGranted === null) {
     return <View>
       <Text>Waiting for camera</Text>
@@ -207,7 +224,7 @@ const CameraMode = () => {
   } else if (isPermGranted === false) {
     return <Text>No access to camera</Text>;
   } else {
-    return (isFocused &&
+    return (
       <View style={styles.container}>
         <StatusBar hidden/>
         <TouchableOpacity style={styles.backButton} onPress={back}>
@@ -228,9 +245,10 @@ const CameraMode = () => {
         <Camera
           ratio={ratio}
           ref={cameraRef}
-          style={[styles.camera, { width, height, maxWidth: width, maxHeight: height }]}
+          style={[styles.camera, { opacity: width && height && ratio ? 1 : 0, width, height, maxWidth: width, maxHeight: height }]}
           type={Camera.Constants.Type.back}
           onCameraReady={onCameraReady}
+          onMountError={e => console.error('camera mount error', e)}
         >
           <View
             style={[styles.buttonContainer]}>

@@ -5,102 +5,46 @@ import last from 'lodash/last';
 import first from 'lodash/first';
 import { sendFile } from './aws';
 import uploadStore from '../mobx/uploadsStore';
+import 'react-native-get-random-values';
 import { v4 } from "uuid";
 
-// const getVideoParams = async (inputPath) => {
-//   console.log("inputfromparams", inputPath);
-//   try {
-//     const session = await FFprobeKit.getMediaInformation(inputPath);
-//     const videoInfo = session.getMediaInformation();
-//     const width = videoInfo.getStreams()[0].getWidth();
-//     const height = videoInfo.getStreams()[0].getHeight();
-//     return { width, height };
-//   } catch (error) {
-//     console.error("Failed to get video params", error);
-//   }
-// }
-
 const isAndroid = Platform.OS === 'android';
-// const androidURI = (uri) => FileSystem.getContentUriAsync(uri);
 import { FFprobeKit, FFmpegKit } from 'ffmpeg-kit-react-native';
 
-const compressVideo = async (inputPath) => {
-  try {
-    const session = await FFprobeKit.getMediaInformation(inputPath);
-    const videoInfo = session.getMediaInformation();
-    const width = videoInfo.getStreams()[0].getWidth();
-    const height = videoInfo.getStreams()[0].getHeight();
-    // Get the video's original width and height
-    // const { width, height } = getVideoParams(inputPath);
-    const filePath = inputPath.substring(0, inputPath.lastIndexOf("/")) + "/";
-    console.log("filepath", filePath)
+const compressVideo = async (inputPath, newFileName) => {
+  const session = await FFprobeKit.getMediaInformation(inputPath);
+  const videoInfo = session.getMediaInformation();
+  const width = videoInfo.getStreams()[0].getWidth();
+  const height = videoInfo.getStreams()[0].getHeight();
+  const filePath = inputPath.substring(0, inputPath.lastIndexOf("/")) + "/";
 
-    // Calculate the desired width and height based on the aspect ratio
-    const outputWidth = 960;
-    const outputHeight = Math.floor((outputWidth / width) * height);
+  // Calculate the desired width and height based on the aspect ratio
+  const outputWidth = 960;
+  const outputHeight = Math.floor((outputWidth / width) * height);
 
-    // Set the minimum bitrate
-    const minBitrate = 5000;
-    const outputPath = `${filePath}${v4()}.mp4`;
+  // Set the minimum bitrate
+  const minBitrate = 5000;
+  const outputPath = `${filePath}${newFileName}.mp4`;
+  const trimCommand = `-ss 00:00:00.080` // start time for ios for decent thumbnails
 
-    // Build the ffmpeg command based on the platform
-    let ffmpegCommand;
-    if (Platform.OS === 'android') {
-      // For Android, use the provided ffmpeg binary in the react-native-ffmpeg library
-      ffmpegCommand = `-i ${inputPath} -vf "scale=${outputWidth}:${outputHeight}" -b:v ${minBitrate}k ${outputPath}`;
-    } else if (Platform.OS === 'ios') {
-      // For iOS, use the system-installed ffmpeg (if available) or the provided ffmpeg binary
-      ffmpegCommand = `-i ${inputPath} -vf "scale=${outputWidth}:${outputHeight}" -b:v ${minBitrate}k -c:v libx264 -c:a aac ${outputPath}`;
-    }
+  // Build the ffmpeg command based on the platform
+  // let ffmpegCommand;
+  // if (Platform.OS === 'android') {
+  //   // For Android, use the provided ffmpeg binary in the react-native-ffmpeg library
+  //   ffmpegCommand = `-i ${inputPath} -vf "scale=${outputWidth}:${outputHeight}" -b:v ${minBitrate}k ${outputPath}`;
+  // } else if (Platform.OS === 'ios') {
+  //   // For iOS, use the system-installed ffmpeg (if available) or the provided ffmpeg binary
+  //   ffmpegCommand = `-i ${inputPath} -vf "scale=${outputWidth}:${outputHeight}" -b:v ${minBitrate}k -c:v libx264 -c:a aac ${outputPath}`;
+  // }
 
-    const testCMD = `-hwaccel auto -threads 6 -y -i ${inputPath} -c:v copy -b:v ${minBitrate}k -preset ultrafast -pix_fmt yuv420p -crf 28 ${outputPath}`
-    const testCMD0 = `-hwaccel auto -threads 6 -y -i ${inputPath} -c:v copy -b:v ${minBitrate}k -pix_fmt yuv420p -crf 28 ${outputPath}`
-    const testCMD2 = `-y -i ${inputPath} -c:v libx264 -minrate 5000 -r 30 -vf "scale=${outputWidth}:${outputHeight}" ${outputPath}`
-    const easiestCMD = `-i ${inputPath} -c:v mpeg4 ${outputPath}`
-    console.log('command', easiestCMD);
-
-    // Run the ffmpeg command
-    await FFmpegKit.execute(testCMD2);
-    uploadStore.compressComplete(testCMD2);
-    console.log('Video compression completed successfully!');
-    return outputPath;
-  } catch (error) {
-    console.error('Error compressing video:', error);
-  }
+  //const testCMD02 = `-hwaccel auto -threads 6 -y -i ${inputPath} -c:v copy -b:v ${minBitrate}k -preset ultrafast -pix_fmt yuv420p -crf 28 ${outputPath}`
+  // const testCMD0 = `-hwaccel auto -threads 6 -y -i ${inputPath} -c:v copy -b:v ${minBitrate}k -pix_fmt yuv420p -crf 28 ${outputPath}`
+  const ffmpegCommand = `-y -i ${inputPath} ${!isAndroid && trimCommand} -c:v libx264 -minrate 5000 -r 30 -vf "scale=${outputWidth}:${outputHeight}" ${outputPath}`
+  // Run the ffmpeg command
+  await FFmpegKit.execute(ffmpegCommand);
+  console.log('Video compression completed successfully!')  ;
+  return outputPath;
 };
-
-// const androidCompressOptions = {
-//   width: 960,
-//   height: 540,
-//   bitrateMultiplier: 30, // divide video's bitrate to this value
-//   minimumBitrate: 5000,
-// };
-//
-// const iosCompressOptions = {
-//   width: 960,
-//   height: 540,
-//   bitrateMultiplier: 1,
-//   minimumBitrate: 5000,
-// };
-//
-
-// const getAndroidVideoUri = (localVideoUri) => {
-//   return RNGRP.getRealPathFromURI(localVideoUri); // Promise
-// };
-
-// const compressVideo = (videoUri, filename) => {
-//   return ProcessingManager.compress(videoUri, isAndroid ? androidCompressOptions : iosCompressOptions)
-//     .then((data) => {
-//       uploadStore.compressComplete(filename);
-//       return isAndroid ? data.source : data
-//     }, (err) => console.log(err));
-// };
-
-// const trimIosVideo = videoUri => {
-//   return ProcessingManager.trim(videoUri, trimOptions);
-// };
-
-const startTimeForIos = 0.08
 
 const trimIosVideo = async(inputPath, filename) => {
   try {
@@ -126,9 +70,8 @@ export default async ({
                       }) => {
 
   const filename = last(localVideoUri.split('/'));
-
-  // const videoUri = await (isAndroid ? androidURI(localVideoUri) : Promise.resolve(localVideoUri));
-  uploadStore.set(localVideoUri, {
+  const newFileName = v4();
+  uploadStore.set(newFileName, {
     teacherId,
     studentIds,
     filename,
@@ -137,13 +80,13 @@ export default async ({
     progress: 0,
     compressing: true,
   });
-  const maybeTrimmedVideoUri = isAndroid ? localVideoUri : await trimIosVideo(localVideoUri, filename);
-  console.log('maybeTrimmedVideoUri', maybeTrimmedVideoUri)
-  const compressedVideoUri = await compressVideo(localVideoUri, filename);
+  // const maybeTrimmedVideoUri = isAndroid ? localVideoUri : await trimIosVideo(localVideoUri, filename);
+  // const maybeTrimmedVideoUri = await trimIosVideo(localVideoUri, filename);
+  const compressedVideoUri = await compressVideo(localVideoUri, newFileName);
+  uploadStore.compressComplete(newFileName);
   const trimmedDescription = description ? description.trim() : null;
   const trimmedNotes = notesForTeacher ? notesForTeacher.trim() : null;
-  console.log("compressedVideoURL", compressedVideoUri)
-  
+
   Meteor.call('getStudentVideoS3UploadPermission',
     { teacherId, filename },
     (err, signResult) => {
@@ -165,13 +108,13 @@ export default async ({
             notesForTeacher: trimmedNotes,
             url: first(signedUrl.split('?')),
           }, () => {
-            uploadStore.setComplete(filename);
+            uploadStore.setComplete(newFileName);
             FileSystem.deleteAsync(localVideoUri).then(() => 'deleted!');
           });
         },
         (err) => console.log('err', err), // TODO handle
         (loaded, total) => {
-          uploadStore.progress(filename, loaded / total);
+          uploadStore.progress(newFileName, loaded / total);
         }
       )
     }

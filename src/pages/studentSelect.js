@@ -6,7 +6,7 @@ import { View, StyleSheet, FlatList, TouchableOpacity, Text } from 'react-native
 import get from 'lodash/get';
 import omit from 'lodash/omit';
 import { getStudentName, listFilter, accountType, TEACHER, goBack, useGoBack } from '../lib/utils';
-import { HeaderBackButton } from 'react-navigation-stack';
+import { HeaderBackButton } from '@react-navigation/elements';
 import appStore from '../mobx/appStore';
 import SearchInput from '../components/searchField';
 import StudentItem from '../components/studentItem';
@@ -29,7 +29,7 @@ const StudentSelect = observer(() => {
       (isGroup ? appStore.unsetGroupValue : back)();
     }
     return <HeaderBackButton
-      {...omit(props, 'onPress')}
+      tintColor={'#fff'}
       onPress={onPress}
     />
   };

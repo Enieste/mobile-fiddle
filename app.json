@@ -5,13 +5,8 @@
     "version": "3.0.0",
     "privacy": "public",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./src/assets/app-icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "platforms": [
       "android",
       "ios"
@@ -20,6 +15,12 @@
       "**/*"
     ],
     "plugins": [
+      [
+        "@config-plugins/ffmpeg-kit-react-native",
+        {
+          "package": "full-gpl"
+        }
+      ],
       [
         "expo-image-picker",
         {
@@ -40,10 +41,7 @@
         {
           "initialOrientation": "PORTRAIT"
         }
-      ],
-
-      "expo-build-properties",
-      "@config-plugins/ffmpeg-kit-react-native"
+      ]
     ],
     "ios": {
       "supportsTablet": true,
@@ -74,8 +72,7 @@
         "xxhdpi": "./src/assets/splash-xxhdpi.png",
         "xxxhdpi": "./src/assets/splash-xxxhdpi.png",
         "backgroundColor": "#eeeeee",
-        "resizeMode": "contain",
-        "image": "./assets/splash-screen.png"
+        "resizeMode": "contain"
       },
       "package": "com.fiddlequest.teacher_app",
       "permissions": [
@@ -84,9 +81,6 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {

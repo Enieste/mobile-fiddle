@@ -19,7 +19,7 @@ const isComplete  = upload => upload.complete;
 
 const isCompressing = upload => upload.compressing;
 
-const UploadsView = () => {
+const UploadsView = observer(() => {
   const { user, students } = useTracker(() => {
     const user = Meteor.user();
     const studentsSub = isTeacher(user) ? Meteor.subscribe('MyStudents') : Meteor.subscribe('Children');
@@ -35,6 +35,7 @@ const UploadsView = () => {
   );
 
   const uploads = uploadsStore.list();
+  console.log('uploadsuploadsuploadsuploads', uploads)
 
   const composeUploadText = (item) => {
     const studentsIds = item.studentIds;
@@ -43,7 +44,6 @@ const UploadsView = () => {
     return `${isIndependent(user) ? userName(user) : studentNamesToString(studentNames)} playing ${item.title}`;
   }
 
-// https://github.com/oblador/react-native-image-progress TODO change
   const progressBarRender = (progress) => {
     return Platform.select({
       ios: () => <ProgressView
@@ -83,11 +83,12 @@ const UploadsView = () => {
     keyExtractor={getFilename}
   /> : <View />
 
-}
+});
 
 const UploadProgresses = observer(() => {
   useKeepAwake();
   const uploads = uploadsStore.list();
+
   return <View style={styles.container}>
     { uploads.length ?
       <UploadsView key='container' />
