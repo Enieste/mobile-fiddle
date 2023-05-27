@@ -24,14 +24,12 @@ const compressVideo = async (inputPath, newFileName) => {
   const outputHeight = Math.floor((outputWidth / width) * height);
 
   // Set the minimum bitrate
-  const minBitrate = 5000;
-  const outputPath = `${filePath}${newFileName}.mov`;
+  const outputPath = `${filePath}${newFileName}.mp4`;
   const trimCommand = `-ss 00:00:00.080` // start time for ios for decent thumbnails
 
-  const ffmpegCommand = `-y -i ${inputPath} -vcodec libx264 ${!isAndroid && trimCommand} -vf "scale=${outputWidth}:${outputHeight},format=yuv420p" ${outputPath}`
-  const testCmd = `-y -i ${inputPath} -color_trc bt2020-10 -color_primaries bt2020 -vcodec libx264 ${!isAndroid && trimCommand} -pix_fmt yuv420p -level 5.1 -preset ultrafast -vsync 2 -c:a aac -b:a 128k -vf "scale=${outputWidth}:${outputHeight}" ${outputPath}`
+  const ffmpegCMD = `-y -i ${inputPath} -color_trc 6 -color_primaries 5 -color_range 1 -vcodec libx264 ${isAndroid ? "" : trimCommand} -pix_fmt yuv420p -level 5.1 -preset ultrafast -c:a aac -b:a 128k -vf "scale=${outputWidth}:${outputHeight}" ${outputPath}`;
  
-  await FFmpegKit.execute(testCmd);
+  await FFmpegKit.execute(ffmpegCMD);
   console.log('Video compression completed successfully!')  ;
   return outputPath;
 };

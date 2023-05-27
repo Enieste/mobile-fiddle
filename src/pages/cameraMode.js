@@ -49,7 +49,7 @@ const getRatioStrings = (n1, n2) => [[n1, n2], [n2, n1]].map(([first, second]) =
 
 const useToggleOrientationMode = () => {
   const toggleToLandscape = async () => {
-    await ScreenOrientation.lockAsync(isAndroid ? ScreenOrientation.OrientationLock.LANDSCAPE_LEFT : ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT);
+    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT);
   };
   const toggleToPortrait = async () => {
     await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
