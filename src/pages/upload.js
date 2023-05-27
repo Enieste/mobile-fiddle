@@ -129,6 +129,7 @@ const UploadPage = () => {
     uploadStore.clearCompleted();
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
     });
     if (!result.canceled) {
       navigation.navigate('CachingVideo', { videoInfo: get(result, ['assets', '0'])});

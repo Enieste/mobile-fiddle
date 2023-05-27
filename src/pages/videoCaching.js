@@ -1,12 +1,11 @@
 import React, { useEffect } from 'react';
 import { Text, View, ActivityIndicator, StyleSheet, Platform, Alert } from 'react-native';
-import * as MediaLibrary from 'expo-media-library';
 import Meteor from '@meteorrn/core';
 import get from 'lodash/get';
 import { accountType, childrenIds, TEACHER, STUDENT } from "../lib/utils";
+import * as MediaLibrary from 'expo-media-library';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useNavigation, useRoute } from '@react-navigation/native';
-
 import appStore from '../mobx/appStore';
 
 const isAndroid = Platform.OS === 'android';
@@ -23,7 +22,7 @@ const getStudentId = (user) => {
   return userType === STUDENT ? [get(user, ['_id'])] : childrenIds(user);
 };
 
-const createPath = (navigator, videoUri, user) => {
+const navigateCategoryOrStudentSelect = (navigator, videoUri, user) => {
   return navigator.navigate(isOnlyStudent(user) ? 'CategorySelect': 'StudentSelect',
     { videoUri,
       ...isOnlyStudent(user) && { studentIds: getStudentId(user), onlyStudent: true }
@@ -49,31 +48,32 @@ const CachingVideo = () => {
   useEffect(() => {
     const user = Meteor.user();
     const uploadedVideoInfo = get(route, ['params', 'videoInfo']);
-    console.log("uriPromise", uploadedVideoInfo)
-    const videoForSaveUri = get(route, ['params', 'videoForSaveUri']);
+    const uriFromCamera = get(route, ['params', 'videoForSaveUri']);
 
-    if (uploadedVideoInfo) {
-      if (isAndroid && uploadedVideoInfo.rotation % rotationModulus !==0) {
-        nonLandscapeAlert();
-        navigation.canGoBack();
-        // throw 'nonLandscapeVideo';
+    const goBackIfPortrait = async() => {
+      if (uploadedVideoInfo) {
+        if (isAndroid && uploadedVideoInfo.rotation % rotationModulus !==0) {
+          nonLandscapeAlert();
+          navigation.canGoBack();
+          // throw 'nonLandscapeVideo';
+        }
+  
+        if (uploadedVideoInfo.height > uploadedVideoInfo.width) {
+          nonLandscapeAlert();
+          navigation.navigate('Home');
+          throw 'nonLandscapeVideo';
+        }
+  
+        navigateCategoryOrStudentSelect(navigation, uploadedVideoInfo.uri, user);
       }
-
-      //ProcessingManager.getVideoInfo(result.uri) for ios
-
-      if (uploadedVideoInfo.height > uploadedVideoInfo.width) {
-        nonLandscapeAlert();
-        navigation.canGoBack();
-        // throw 'nonLandscapeVideo';
-      }
-
-      createPath(navigation, uploadedVideoInfo.uri, user);
     }
 
-    videoForSaveUri && MediaLibrary.saveToLibraryAsync(videoForSaveUri).then(() =>
+    goBackIfPortrait();
+
+    uriFromCamera && MediaLibrary.saveToLibraryAsync(uriFromCamera).then(() =>
       {
         console.log('saving complete');
-        createPath(navigation, videoForSaveUri, user);
+        navigateCategoryOrStudentSelect(navigation, uriFromCamera, user);
       }
     );
 

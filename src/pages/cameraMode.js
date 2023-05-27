@@ -48,8 +48,6 @@ const useVideoDurationCount = () => {
 const getRatioStrings = (n1, n2) => [[n1, n2], [n2, n1]].map(([first, second]) => `${first}:${second}`);
 
 const useToggleOrientationMode = () => {
-  const isFocused = useIsFocused();
-  const oldFocused = useRef();
   const toggleToLandscape = async () => {
     await ScreenOrientation.lockAsync(isAndroid ? ScreenOrientation.OrientationLock.LANDSCAPE_LEFT : ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT);
   };
@@ -72,7 +70,6 @@ const CameraMode = () => {
   const [ratio, setRatio] = useState(undefined);
   const [width, setWidth] = useState(undefined);
   const [height, setHeight] = useState(undefined);
-  console.log('width', width, 'height', height, 'ratio', ratio)
 
   const navigation = useNavigation();
 

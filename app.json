@@ -4,7 +4,6 @@
     "slug": "teacher-video-app",
     "version": "3.0.0",
     "privacy": "public",
-    "orientation": "portrait",
     "icon": "./src/assets/app-icon.png",
     "userInterfaceStyle": "light",
     "platforms": [
@@ -45,6 +44,17 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "UISupportedInterfaceOrientations": [
+        "UIInterfaceOrientationLandscapeRight",
+        "UIInterfaceOrientationLandscapeLeft",
+        "UIInterfaceOrientationPortrait"
+      ],
+      "UISupportedInterfaceOrientations~ipad": [
+        "UIInterfaceOrientationLandscapeRight",
+        "UIInterfaceOrientationLandscapeLeft",
+        "UIDeviceOrientationPortrait",
+        "UIDeviceOrientationPortraitUpsideDown"
+      ],
       "bundleIdentifier": "com.FiddleQuest.FiddleQuest2",
       "config": {
         "usesNonExemptEncryption": false
