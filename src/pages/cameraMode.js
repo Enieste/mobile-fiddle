@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { Camera, CameraType } from 'expo-camera';
+import { Camera, CameraType } from '@firfi/expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { useKeepAwake } from 'expo-keep-awake';
 import last from 'lodash/last';
@@ -240,6 +240,7 @@ const CameraMode = () => {
           </Text>
         </View>
         <Camera
+          responsiveOrientationWhenOrientationLocked={true}
           ratio={ratio}
           ref={cameraRef}
           style={[styles.camera, { opacity: width && height && ratio ? 1 : 0, width, height, maxWidth: width, maxHeight: height }]}

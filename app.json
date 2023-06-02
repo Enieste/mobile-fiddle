@@ -40,21 +40,18 @@
         {
           "initialOrientation": "PORTRAIT"
         }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
+          "enableMicrophonePermission": true,
+          "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
+        }
       ]
     ],
     "ios": {
       "supportsTablet": true,
-      "UISupportedInterfaceOrientations": [
-        "UIInterfaceOrientationLandscapeRight",
-        "UIInterfaceOrientationLandscapeLeft",
-        "UIInterfaceOrientationPortrait"
-      ],
-      "UISupportedInterfaceOrientations~ipad": [
-        "UIInterfaceOrientationLandscapeRight",
-        "UIInterfaceOrientationLandscapeLeft",
-        "UIDeviceOrientationPortrait",
-        "UIDeviceOrientationPortraitUpsideDown"
-      ],
       "bundleIdentifier": "com.FiddleQuest.FiddleQuest2",
       "config": {
         "usesNonExemptEncryption": false
@@ -66,7 +63,15 @@
       },
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow the app to access your videos.",
-        "NSPhotoLibraryAddUsageDescription": "Allow the app to save videos."
+        "NSPhotoLibraryAddUsageDescription": "Allow the app to save videos.",
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationLandscapeRight"
+        ],
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIDeviceOrientationPortrait",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
       }
     },
     "android": {

@@ -49,7 +49,7 @@ const SignIn = memo(() => {
       <View style={styles.imageContainer}>
         <Image
           style={{ flex:1, height: undefined, width: undefined }}
-          resizeMode="center"
+          resizeMode="contain"
           source={require('../assets/wordmark-for-login.png')}
         />
       </View>
