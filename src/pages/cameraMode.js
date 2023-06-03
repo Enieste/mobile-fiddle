@@ -13,11 +13,18 @@ import { durationToStr } from '../lib/utils';
 import permissionAlert from '../components/permissionAlert';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-
+const { getOrientationAsync, getOrientationLockAsync, getPlatformOrientationLockAsync } = ScreenOrientation;
 const isAndroid = Platform.OS === 'android';
 
 const desiredRatioH = [4, 3];
 const desiredRatioV = [3, 4];
+
+const getOrientationInfo = async () => {
+  const orientation = await getOrientationLockAsync();
+  const lock = await getOrientationLockAsync();
+  const platformLock = await getPlatformOrientationLockAsync();
+  console.log('orientation:', orientation, 'lock:', lock, 'platformLock:', platformLock)
+};
 
 const useVideoDurationCount = () => {
   const [duration, setDuration] = useState(0);
@@ -48,6 +55,7 @@ const useVideoDurationCount = () => {
 const getRatioStrings = (n1, n2) => [[n1, n2], [n2, n1]].map(([first, second]) => `${first}:${second}`);
 
 const useToggleOrientationMode = () => {
+  console.log('toggle toggle')
   const toggleToLandscape = async () => {
     await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT);
   };
@@ -70,6 +78,13 @@ const CameraMode = () => {
   const [ratio, setRatio] = useState(undefined);
   const [width, setWidth] = useState(undefined);
   const [height, setHeight] = useState(undefined);
+  const [orientation, setOrientation] = useState(
+    ScreenOrientation.Orientation.PORTRAIT_UP
+  );
+
+  console.log('w', width, 'h', height, 'r', ratio)
+  console.log('orientationfromlistener', orientation)
+  getOrientationInfo();
 
   const navigation = useNavigation();
 
@@ -84,7 +99,33 @@ const CameraMode = () => {
   ];
 
   useEffect(() => {
+    // set initial orientation
+    ScreenOrientation.getOrientationAsync().then((info) => {
+      setOrientation(info.orientation);
+    });
+  
+    // subscribe to future changes
+    const subscription = ScreenOrientation.addOrientationChangeListener((evt) => {
+      console.log('HOP', evt)
+      setOrientation(evt.orientationInfo.orientation);
+    });
+  
+    // return a clean up function to unsubscribe from notifications
+    return () => {
+      ScreenOrientation.removeOrientationChangeListener(subscription);
+    };
+  }, []);
 
+  useEffect(() => {
+    console.log('booopbooop')
+    const settingOrientationAsync = async () => {
+      await orientationSet(Dimensions.get('window'));
+    }
+    width && height && settingOrientationAsync();
+  }, [orientation, width, height])
+
+  useEffect(() => {
+    console.log('permisionss check')
     const askPermissions = async () => {
       if (!ps.map(([p]) => !!p).every(Boolean)) {
         console.log('permissions not ready to read');
@@ -100,16 +141,18 @@ const CameraMode = () => {
           })()).granted : true
         })
       );
-      if (res.every(Boolean)) {
+      const allGranted = res.every(Boolean);
+      if (allGranted) {
         setPermGranted(true);
       }
-      if (!isAndroid && !res.every(Boolean)) {
+      // handled somehow differently TODO check it
+      if (!isAndroid && !allGranted) {
         console.log("PERMISSION ALERT")
         permissionAlert();
       }
     }
     askPermissions();
-  }, [...ps])
+  }, ps.map(p => p && p[0]?.granted))
 
   const cameraRef = useRef(null);
 
@@ -128,6 +171,7 @@ const CameraMode = () => {
   };
 
   const orientationSet = async ({ width, height }) => {
+    console.log('setting orientation...')
     const isOrientationVertical = width < height;
     const [r1, r2] = await getRatio(isOrientationVertical);
     const width1 = width;
@@ -152,9 +196,16 @@ const CameraMode = () => {
 
   };
 
-  const onCameraReady = async (c) => {
-    console.log('onCameraReadyonCameraReady', c)
-    await orientationSet(Dimensions.get('window'));
+  const onCameraReady = async () => {
+    console.log('onCameraReadyonCameraReady')
+    const promise = new Promise((resolve, reject) => {
+      setTimeout(async() => {
+        resolve('foo');
+        console.log('hey', Dimensions.get('window'))
+        await orientationSet(Dimensions.get('window'));
+      }, 500);
+    });
+    console.log("dsadsadfasdsadsa")
   };
 
   //TODO what for ?
@@ -204,8 +255,7 @@ const CameraMode = () => {
   };
 
   const back = () => {
-    const { goBack, state } = navigation;
-    // if (shooting) cameraRef.current.stopRecording();
+    const { goBack } = navigation;
     if (shooting) stopShooting();
     // const params = state.params || {};
     goBack();
@@ -213,7 +263,6 @@ const CameraMode = () => {
 
   // don't draw camera in the background
   if (!isFocused) return null;
-
   if (isPermGranted === null) {
     return <View>
       <Text>Waiting for camera</Text>
@@ -239,7 +288,7 @@ const CameraMode = () => {
             Use in landscape only
           </Text>
         </View>
-        <Camera
+        { orientation === 4 ?<Camera
           responsiveOrientationWhenOrientationLocked={true}
           ratio={ratio}
           ref={cameraRef}
@@ -266,7 +315,9 @@ const CameraMode = () => {
               <Text style={styles.timerText}>{durationToStr(duration)}</Text>
             </View>
           </View>
-        </Camera>
+        </Camera> : <View>
+      <Text>Waiting for orientation</Text>
+    </View>}
       </View>
     );
   }

@@ -55,6 +55,7 @@
         "resizeMode": "contain"
       },
       "infoPlist": {
+        "UIRequiresFullScreen": true,
         "NSPhotoLibraryUsageDescription": "Allow the app to access your videos.",
         "NSPhotoLibraryAddUsageDescription": "Allow the app to save videos.",
         "UISupportedInterfaceOrientations": [
