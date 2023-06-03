@@ -19,13 +19,6 @@ const isAndroid = Platform.OS === 'android';
 const desiredRatioH = [4, 3];
 const desiredRatioV = [3, 4];
 
-const getOrientationInfo = async () => {
-  const orientation = await getOrientationLockAsync();
-  const lock = await getOrientationLockAsync();
-  const platformLock = await getPlatformOrientationLockAsync();
-  console.log('orientation:', orientation, 'lock:', lock, 'platformLock:', platformLock)
-};
-
 const useVideoDurationCount = () => {
   const [duration, setDuration] = useState(0);
   const [isCounting, setCounting] = useState(false);
@@ -55,7 +48,6 @@ const useVideoDurationCount = () => {
 const getRatioStrings = (n1, n2) => [[n1, n2], [n2, n1]].map(([first, second]) => `${first}:${second}`);
 
 const useToggleOrientationMode = () => {
-  console.log('toggle toggle')
   const toggleToLandscape = async () => {
     await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT);
   };
@@ -73,8 +65,8 @@ const useToggleOrientationMode = () => {
 const CameraMode = () => {
   const [shooting, setShooting] = useState(false);
   const [type, setType] = useState(CameraType.back);
+  const [isCameraReady, setCameraReady] = useState(false);
   const [isPermGranted, setPermGranted] = useState(null);
-  const [isOrientationVertical, setIsOrientationVertical] = useState(true);
   const [ratio, setRatio] = useState(undefined);
   const [width, setWidth] = useState(undefined);
   const [height, setHeight] = useState(undefined);
@@ -82,11 +74,38 @@ const CameraMode = () => {
     ScreenOrientation.Orientation.PORTRAIT_UP
   );
 
-  console.log('w', width, 'h', height, 'r', ratio)
-  console.log('orientationfromlistener', orientation)
-  getOrientationInfo();
-
   const navigation = useNavigation();
+  const dimensions = Dimensions.get('window');
+
+  // ios, sometimes when a user locks/unlocks the screen in phone settings, the camera won't render from the first attempt
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if(isPermGranted && !isCameraReady) {
+        navigation.goBack();
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [isPermGranted, isCameraReady]);
+
+  useEffect(() => {
+    // set initial orientation
+    ScreenOrientation.getOrientationAsync().then((info) => {
+      setOrientation(info.orientation);
+    });
+  }, []);
+
+  useEffect(() => {
+    const getAndSetCurrentOrientation = async() => {
+      const orientation = await getPlatformOrientationLockAsync();
+      const promise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve('foo');
+          setOrientation(orientation.screenOrientationArrayIOS[0]);
+        }, 100); // for ios, otherwise camera sometimes is rendered incorrect
+      });
+    };
+    getAndSetCurrentOrientation();
+  }, [dimensions.width]);
 
   useKeepAwake();
   useToggleOrientationMode();
@@ -99,33 +118,6 @@ const CameraMode = () => {
   ];
 
   useEffect(() => {
-    // set initial orientation
-    ScreenOrientation.getOrientationAsync().then((info) => {
-      setOrientation(info.orientation);
-    });
-  
-    // subscribe to future changes
-    const subscription = ScreenOrientation.addOrientationChangeListener((evt) => {
-      console.log('HOP', evt)
-      setOrientation(evt.orientationInfo.orientation);
-    });
-  
-    // return a clean up function to unsubscribe from notifications
-    return () => {
-      ScreenOrientation.removeOrientationChangeListener(subscription);
-    };
-  }, []);
-
-  useEffect(() => {
-    console.log('booopbooop')
-    const settingOrientationAsync = async () => {
-      await orientationSet(Dimensions.get('window'));
-    }
-    width && height && settingOrientationAsync();
-  }, [orientation, width, height])
-
-  useEffect(() => {
-    console.log('permisionss check')
     const askPermissions = async () => {
       if (!ps.map(([p]) => !!p).every(Boolean)) {
         console.log('permissions not ready to read');
@@ -171,7 +163,6 @@ const CameraMode = () => {
   };
 
   const orientationSet = async ({ width, height }) => {
-    console.log('setting orientation...')
     const isOrientationVertical = width < height;
     const [r1, r2] = await getRatio(isOrientationVertical);
     const width1 = width;
@@ -189,7 +180,6 @@ const CameraMode = () => {
       height: height2,
     };
 
-    setIsOrientationVertical(isOrientationVertical);
     setRatio('' + r1 + ':' + r2);
     setWidth(isOrientationVertical ? vertical.width : horizontal.width);
     setHeight(isOrientationVertical ? vertical.height : horizontal.height);
@@ -197,15 +187,8 @@ const CameraMode = () => {
   };
 
   const onCameraReady = async () => {
-    console.log('onCameraReadyonCameraReady')
-    const promise = new Promise((resolve, reject) => {
-      setTimeout(async() => {
-        resolve('foo');
-        console.log('hey', Dimensions.get('window'))
-        await orientationSet(Dimensions.get('window'));
-      }, 500);
-    });
-    console.log("dsadsadfasdsadsa")
+    setCameraReady(true);
+    await orientationSet(Dimensions.get('window'));
   };
 
   //TODO what for ?

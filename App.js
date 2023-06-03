@@ -20,7 +20,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { Text, TouchableOpacity, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from 'expo-splash-screen';
-import * as ScreenOrientation from 'expo-screen-orientation';
 
 const development = 'ws://localhost:3000/websocket';
 const staging = 'wss://app.staging.fiddlequest.com/websocket';
@@ -138,9 +137,6 @@ const Stack = createStackNavigator();
 
 const App = () => {
   const { user, isLoading, userCertainlyChecked } = useUser();
-  useEffect(() => {
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP)
-  }, [])
   if (isLoading || !userCertainlyChecked) return <View><Text>Loading...</Text></View>;
   return (
     <NavigationContainer>

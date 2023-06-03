@@ -1,9 +1,9 @@
 const { withInfoPlist } = require('@expo/config-plugins')
 
-module.exports = config =>
-  withInfoPlist(config, config => {
-    // Only enable portrait orientation in iPad
-    config.modResults['UISupportedInterfaceOrientations~ipad'] = ['UIInterfaceOrientationPortrait']
-
+module.exports = function modifyInfoPlist(config) {
+  return withInfoPlist (config, (config) => {
+    config.modResults['UISupportedInterfaceOrientations~ipad'] = ['UIDeviceOrientationPortrait', 'UIInterfaceOrientationLandscapeRight'];
+    config.modResults['requireFullScreen'] = true;
     return config
   });
+};
