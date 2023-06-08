@@ -35,7 +35,7 @@ const UploadsView = observer(() => {
   );
 
   const uploads = uploadsStore.list();
-  console.log('uploadsuploadsuploadsuploads', uploads)
+  console.log('uploads', uploads)
 
   const composeUploadText = (item) => {
     const studentsIds = item.studentIds;

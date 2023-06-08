@@ -13,7 +13,7 @@ import { durationToStr } from '../lib/utils';
 import permissionAlert from '../components/permissionAlert';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-const { getOrientationAsync, getOrientationLockAsync, getPlatformOrientationLockAsync } = ScreenOrientation;
+const { getPlatformOrientationLockAsync } = ScreenOrientation;
 const isAndroid = Platform.OS === 'android';
 
 const desiredRatioH = [4, 3];
@@ -79,6 +79,7 @@ const CameraMode = () => {
 
   // ios, sometimes when a user locks/unlocks the screen in phone settings, the camera won't render from the first attempt
   useEffect(() => {
+    if (isAndroid) return;
     const timer = setTimeout(() => {
       if(isPermGranted && !isCameraReady) {
         navigation.goBack();
@@ -95,12 +96,13 @@ const CameraMode = () => {
   }, []);
 
   useEffect(() => {
+    if (isAndroid) return;
     const getAndSetCurrentOrientation = async() => {
-      const orientation = await getPlatformOrientationLockAsync();
+      const currentOrientation = await getPlatformOrientationLockAsync();
       const promise = new Promise((resolve, reject) => {
         setTimeout(() => {
           resolve('foo');
-          setOrientation(orientation.screenOrientationArrayIOS[0]);
+          setOrientation(currentOrientation.screenOrientationArrayIOS[0]);
         }, 100); // for ios, otherwise camera sometimes is rendered incorrect
       });
     };
@@ -147,6 +149,7 @@ const CameraMode = () => {
   }, ps.map(p => p && p[0]?.granted))
 
   const cameraRef = useRef(null);
+  const videoPromiseRef = useRef(null);
 
   const getSupportedRatiosAsync = async () => {
     return await Platform.select({
@@ -197,7 +200,7 @@ const CameraMode = () => {
   };
 
   const toggleRecord = () => {
-    (shooting ? stopShooting : takeVideo)();
+    (shooting ? stopShooting : startShooting)();
   };
 
   const handleRecordOrStopPress = debounce(toggleRecord, 500, { leading: true, trailing: false });
@@ -208,41 +211,43 @@ const CameraMode = () => {
 
   const [duration, startTimer, stopTimer, resetTimer] = useVideoDurationCount();
 
-  useEffect(() => {
-    if (shooting) {
-      startTimer();
-      cameraRef.current.recordAsync(isAndroid && recordingConfig).then(res => {
-        if (!isFocused) return; // recordingAsync will be resolved on camera component unmount
-        console.log('result', res)
-        stopTimer();
-        resetTimer();
-        navigation.navigate('CachingVideo', { videoForSaveUri: res.uri });
-      });
-    }
-  }, [shooting]);
-
-  const takeVideo = () => {
+  const startShooting = () => {
     if (shooting) return;
-    if (cameraRef.current) {
-      setShooting(true);
-    }
+    setShooting(true);
+    startTimer();
+    videoPromiseRef.current = cameraRef.current.recordAsync(isAndroid && recordingConfig);
+  };
+
+  const stopSequence = () => {
+    stopTimer();
+    resetTimer();
+    cameraRef.current.stopRecording();
   };
 
   const stopShooting = () => {
     if (!shooting) return;
-    stopTimer();
-    resetTimer();
-    // if (!isFocused) return;
-    cameraRef.current.stopRecording();
+    stopSequence();
     setShooting(false);
+    videoPromiseRef.current.then(res => {
+      console.log('result', res);
+      navigation.navigate('CachingVideo', { videoForSaveUri: res.uri });
+    })
   };
 
   const back = () => {
-    const { goBack } = navigation;
-    if (shooting) stopShooting();
-    // const params = state.params || {};
-    goBack();
+    if (!shooting) {
+      navigation.goBack();
+    } else {
+      stopSequence();
+      videoPromiseRef.current.then(res => {
+        navigation.goBack();
+      })
+    }
   };
+
+  const isReadyForCamera = () => {
+    return isAndroid || orientation === 4;
+  }
 
   // don't draw camera in the background
   if (!isFocused) return null;
@@ -271,7 +276,7 @@ const CameraMode = () => {
             Use in landscape only
           </Text>
         </View>
-        { orientation === 4 ?<Camera
+        { isReadyForCamera() ? <Camera
           responsiveOrientationWhenOrientationLocked={true}
           ratio={ratio}
           ref={cameraRef}

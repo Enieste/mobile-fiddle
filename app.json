@@ -2,7 +2,7 @@
   "expo": {
     "name": "FiddleQuest",
     "slug": "teacher-video-app",
-    "version": "3.0.0",
+    "version": "3.1.0",
     "privacy": "public",
     "icon": "./src/assets/app-icon.png",
     "userInterfaceStyle": "light",
@@ -69,6 +69,7 @@
       }
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/ic_launcher_foreground.png",
         "backgroundColor": "#FFFFFF"

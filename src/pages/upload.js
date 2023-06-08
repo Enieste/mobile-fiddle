@@ -1,4 +1,4 @@
-import React, { PureComponent, useEffect, useLayoutEffect } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect } from 'react';
 import { Text, View, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,7 +7,7 @@ import { backgroundMain, backgroundGray, iconFont, backgroundTitle } from '../co
 import WhiteMenu from '../components/icons/whitemenu';
 import CameraIcon from '../components/icons/camera';
 import uploadStore from '../mobx/uploadsStore';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import get from 'lodash/get';
 
 const UploadIcon = Platform.select({
