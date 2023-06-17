@@ -37,6 +37,7 @@
     "expo-splash-screen": "~0.18.2",
     "expo-status-bar": "^1.4.4",
     "expo-system-ui": "~2.2.1",
+    "expo-updates": "~0.16.4",
     "expokit": "^37.0.0",
     "ffmpeg-kit-react-native": "^5.1.0",
     "jetifier": "^2.0.0",

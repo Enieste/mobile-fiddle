@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "FiddleQuest",
+    "name": "FiddleQuest Video Recorder",
     "slug": "teacher-video-app",
-    "version": "3.1.0",
+    "version": "3.0.0",
     "privacy": "public",
     "icon": "./src/assets/app-icon.png",
     "userInterfaceStyle": "light",
@@ -47,6 +47,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.FiddleQuest.FiddleQuest2",
+      "buildNumber": "8",
+      "requireFullScreen": true,
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -69,7 +71,7 @@
       }
     },
     "android": {
-      "versionCode": 2,
+      "versionCode": 20,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/ic_launcher_foreground.png",
         "backgroundColor": "#FFFFFF"
@@ -96,6 +98,12 @@
       "eas": {
         "projectId": "924b9cb0-92a8-11e8-985a-e556e745359a"
       }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/924b9cb0-92a8-11e8-985a-e556e745359a"
     }
   }
 }

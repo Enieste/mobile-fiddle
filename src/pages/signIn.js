@@ -6,8 +6,8 @@ import renderButton from '../components/button';
 import { useNavigation } from '@react-navigation/native';
 
 const SignIn = memo(() => {
-  const [email, setEmail] = useState('igor.loskutoff@gmail.com');
-  const [password, setPassword] = useState('100gktntq');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
 
   const navigation = useNavigation();

@@ -84,7 +84,7 @@ const CameraMode = () => {
       if(isPermGranted && !isCameraReady) {
         navigation.goBack();
       }
-    }, 2000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [isPermGranted, isCameraReady]);
 
@@ -192,11 +192,6 @@ const CameraMode = () => {
   const onCameraReady = async () => {
     setCameraReady(true);
     await orientationSet(Dimensions.get('window'));
-  };
-
-  //TODO what for ?
-  const dimensionListener = async (e) => {
-    return await orientationSet(e.window);
   };
 
   const toggleRecord = () => {

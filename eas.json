@@ -21,11 +21,23 @@
     },
     "production": {
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "1032834334",
+        "appleTeamId": "7P57YA8AC3",
+        "sku": "teacher-video-app"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./eas-server-account-key.json",
+        "track": "production",
+        "releaseStatus": "completed",
+        "changesNotSentForReview": true
+      }
+    }
   }
 }
