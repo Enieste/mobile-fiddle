@@ -24,7 +24,7 @@ const development = 'ws://localhost:3000/websocket';
 const staging = 'wss://app.staging.fiddlequest.com/websocket';
 const production = 'wss://app.fiddlequest.com/websocket';
 
-Meteor.connect(production, { AsyncStorage });
+Meteor.connect(staging, { AsyncStorage });
 
 SplashScreen.preventAutoHideAsync();
 

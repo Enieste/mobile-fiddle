@@ -12,6 +12,7 @@ const isAndroid = Platform.OS === 'android';
 import { FFprobeKit, FFmpegKit } from 'ffmpeg-kit-react-native';
 
 const compressVideo = async (inputPath, newFileName) => {
+    console.log("inputPath", inputPath)
   const session = await FFprobeKit.getMediaInformation(inputPath);
   const videoInfo = session.getMediaInformation();
   const width = videoInfo.getStreams()[0].getWidth();
