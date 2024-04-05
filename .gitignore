@@ -80,3 +80,4 @@ dist/
 /ios/
 /eas-server-account-key.json
 /jks_fiddlequest/
+/%ProgramData%/
