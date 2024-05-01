@@ -1,9 +1,13 @@
 import React, { memo, useCallback, useState } from 'react';
 import Meteor from '@meteorrn/core';
-import { StyleSheet, Text, View, TextInput, Image, KeyboardAvoidingView } from 'react-native';
+import {StyleSheet, Text, View, TextInput, Image, KeyboardAvoidingView, Alert} from 'react-native';
 import { iconFont, backgroundGray } from '../colorSets';
 import renderButton from '../components/button';
 import { useNavigation } from '@react-navigation/native';
+
+const loginAlert = (reason) => Alert.alert('Login error', reason, [{
+  text: 'OK'
+}]);
 
 const SignIn = memo(() => {
   const [email, setEmail] = useState('');
@@ -14,11 +18,11 @@ const SignIn = memo(() => {
 
   const isValid = useCallback(() => {
     let valid = false;
-
+    console.log('email1233', email)
     if (email.length > 0 && password.length > 0) {
       valid = true;
+      setError(null);
     }
-
     if (email.length === 0) {
       setError('You must enter an email address');
     } else if (password.length === 0) {
@@ -33,16 +37,13 @@ const SignIn = memo(() => {
       Meteor.loginWithPassword(email.toLowerCase(), password, (error) => {
         console.log('after login attempt')
         if (error) {
-          setError(error.reason);
+          loginAlert(error.reason);
           return;
         }
-        console.log('this.props.navigation', navigation)
         navigation.navigate('Home');
       });
-    } else {
-      console.error('TODO error on invalid signin');
     }
-  }, [password, navigation]);
+  }, [password, navigation, isValid]);
 
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.container}>

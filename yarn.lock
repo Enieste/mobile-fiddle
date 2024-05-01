@@ -4092,11 +4092,12 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@meteorrn/core@2.7.1":
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/@meteorrn/core/-/core-2.7.1.tgz#e1a24e5f42a6e9aec37744fc187e42cca253b921"
-  integrity sha512-Czz8ZEMtSDXOo5kFGi+NLfiD7GiFtQn061QsWkWt3BxS6qdJaRoH2kE9zWyILRCRmzNSr5KyUdXvYhLNoq7bNQ==
+"@meteorrn/core@2.8.1", "@meteorrn/core@^2.8.1-rc.0":
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/@meteorrn/core/-/core-2.8.1.tgz#c1ad5fb491b97984278c08bc6001bf7632825243"
+  integrity sha512-2S8fqAF7DwSQa8zKSWnzOsJRzmPRrjIZdxfdP7jUX3Bi2d7NKQCq4P4I8W0VTR73+EUJOhPcvGPirKBu9m1j9w==
   dependencies:
+    "@meteorrn/core" "^2.8.1-rc.0"
     "@meteorrn/minimongo" "1.0.1"
     ejson "2.2.3"
     eventemitter3 "^5.0.1"
@@ -4985,6 +4986,11 @@
   dependencies:
     "@typescript-eslint/types" "5.59.7"
     eslint-visitor-keys "^3.3.0"
+
+"@uidotdev/usehooks@^2.4.1":
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/@uidotdev/usehooks/-/usehooks-2.4.1.tgz#4b733eaeae09a7be143c6c9ca158b56cc1ea75bf"
+  integrity sha512-1I+RwWyS+kdv3Mv0Vmc+p0dPYH0DTRAo04HLyXReYBL9AeseDWUJyi4THuksBJcu9F0Pih69Ak150VDnqbVnXg==
 
 "@urql/core@2.3.6":
   version "2.3.6"
@@ -6915,6 +6921,11 @@ expo-modules-core@1.11.9:
   integrity sha512-GTUb81vcPaF+5MtlBI1u9IjrZbGdF1ZUwz3u8Gc+rOLBblkZ7pYsj2mU/tu+k0khTckI9vcH4ZBksXWvE1ncjQ==
   dependencies:
     invariant "^2.2.4"
+
+expo-network@~5.8.0:
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/expo-network/-/expo-network-5.8.0.tgz#1481471467fc5cc55df750eaf74927ea8c664fbc"
+  integrity sha512-mTtyqRgLKvXWB+xCoY5WMtRrpVqYmcXWz3YbyN+X0HRGqXg7a+UYOXeKlxrkwBiadsElhmfMeaj1UpmW79Zw/w==
 
 expo-screen-orientation@~6.4.1:
   version "6.4.1"

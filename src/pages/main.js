@@ -7,7 +7,7 @@ import { backgroundMain, backgroundGray, iconFont, backgroundTitle } from '../co
 import WhiteMenu from '../components/icons/whitemenu';
 import CameraIcon from '../components/icons/camera';
 import uploadStore from '../mobx/uploadsStore';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import get from 'lodash/get';
 
 const UploadIcon = Platform.select({

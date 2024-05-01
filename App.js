@@ -1,12 +1,10 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, {createContext, useEffect, useRef, useState} from 'react';
 import Meteor, { useTracker } from '@meteorrn/core';
-import { createSwitchNavigator } from '@react-navigation/compat';
 import { createStackNavigator } from '@react-navigation/stack';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import 'react-native-gesture-handler';
 import SignIn from './src/pages/signIn';
 import SignOut from './src/pages/signOut';
-import UploadPage from './src/pages/upload';
+import UploadPage from './src/pages/main';
 import CameraMode from './src/pages/cameraMode';
 import CachingVideo from './src/pages/videoCaching';
 import StudentSelect from './src/pages/studentSelect';
@@ -14,11 +12,20 @@ import SongSelect from './src/pages/songSelect';
 import CategorySelect from './src/pages/categorySelect';
 import Comments from './src/pages/comments';
 import Summary from './src/pages/summary';
-import { backgroundTitle } from './src/colorSets';
+import {backgroundTitle, iconFont} from './src/colorSets';
 import { NavigationContainer } from "@react-navigation/native";
-import { Text, View } from "react-native";
+import {ActivityIndicator, Alert, BackHandler, StyleSheet, Text, View} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from 'expo-splash-screen';
+import NetInfo from '@react-native-community/netinfo';
+import { useDebounce } from "@uidotdev/usehooks";
+const useIsConnected = () => {
+  const [isConnected, setIsConnected] = useState(null);
+  useEffect(() => NetInfo.addEventListener(state => {
+    setIsConnected(state.isConnected);
+  }), []);
+  return isConnected;
+};
 
 const development = 'ws://localhost:3000/websocket';
 const staging = 'wss://app.staging.fiddlequest.com/websocket';
@@ -28,9 +35,17 @@ Meteor.connect(staging, { AsyncStorage });
 
 SplashScreen.preventAutoHideAsync();
 
+const userContextDefaultValue = {
+  userCertainlyChecked: false,
+  isLoading: false,
+  user: undefined,
+}
+
+const UserContext = createContext(userContextDefaultValue);
+
 const useUser = () => {
   const [userCertainlyChecked, setUserCertainlyChecked] = useState(false);
-  const { user, loggingIn } = useTracker(() => {
+  const { user: userOnSpeeds/*meteor blinks user to true then to false then to true with NO F REASON*/, loggingIn } = useTracker(() => {
     const user = Meteor.user();
     const loggingIn = Meteor.loggingIn();
     return {
@@ -38,6 +53,7 @@ const useUser = () => {
       loggingIn,
     };
   });
+  const user = useDebounce(userOnSpeeds, 300);
   const loggingInRef = useRef(false/*being changed to undefined or an object, never "false" again*/);
   useEffect(() => {
     const prevLoggingIn = loggingInRef.current;
@@ -45,7 +61,8 @@ const useUser = () => {
 
       // I did log in and now I do not log in but I'm still not ready! no no
       //if (!user) return;
-      SplashScreen.hideAsync().then(() => {});
+      SplashScreen.hideAsync().then(() => {
+      });
       setUserCertainlyChecked(true);
     }
     loggingInRef.current = loggingIn;
@@ -53,54 +70,9 @@ const useUser = () => {
   return { user, isLoading: loggingIn, userCertainlyChecked };
 };
 
-const AuthLoadingScreen = memo(({ navigation }) => {
-  const { user, loggingIn } = useTracker(() => {
-    const user = Meteor.user();
-    const loggingIn = Meteor.loggingIn();
-    return {
-      user,
-      loggingIn,
-    };
-  });
-  const checkUserAndSwitch = useCallback(() => {
-    navigation.navigate(user ? 'App' : 'Auth');
-  }, [navigation, user]);
-  const loggingInRef = useRef(false/*being changed to undefined or an object, never "false" again*/);
-  useEffect(() => {
-    const prevLoggingIn = loggingInRef.current;
-    if (loggingIn !== prevLoggingIn && !loggingIn) {
-      checkUserAndSwitch();
-    }
-    loggingInRef.current = loggingIn;
-  }, [loggingIn, checkUserAndSwitch]);
-  return <View><Text>LOADING</Text></View>;
-});
-
 const AuthStack_ = createStackNavigator();
 
-const AuthStack = () =>
-  <AuthStack_.Screen
-    name="SignIn"
-    component={SignIn}
-    options={{
-      title: 'Sign-In',
-      headerStyle: {
-        backgroundColor: backgroundTitle
-      },
-      headerTintColor: '#fff',
-      headerTitleStyle: {
-        flex: 1,
-        textAlign: 'center',
-      }}
-    }
-  />
-
 const AppStack_ = createStackNavigator();
-
-const headerStyle = {
-  backgroundColor: backgroundTitle,
-  headerTintColor: '#fff',
-};
 
 const screenOptions = {
   headerStyle: {
@@ -136,33 +108,42 @@ const Stack = createStackNavigator();
 
 const App = () => {
   const { user, isLoading, userCertainlyChecked } = useUser();
-  if (isLoading || !userCertainlyChecked) return <View><Text>Loading...</Text></View>;
+  const isConnected = useIsConnected();
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={screenOptions}>
-        {!user ? (
-          // No token found, user isn't signed in
-          <AuthStack_.Screen
-            name="SignIn"
-            component={SignIn}
-            options={{
-              title: 'Sign-In',
-              headerStyle: {
-                backgroundColor: backgroundTitle
-              },
-              headerTintColor: '#fff',
-              headerTitleStyle: {
-                flex: 1,
-                textAlign: 'center',
-              }}
-            }
-          />
-        ) : (
-          // User is signed in
-          AppStack
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+      <>
+        {isLoading || !userCertainlyChecked ? <View>
+          <Text>
+            Loading...
+          </Text>
+        </View> : null}
+        {!isConnected && <View><Text>Internet is not connected...</Text></View>}
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={screenOptions}>
+            {!user ? (
+                // No token found, user isn't signed in
+                <AuthStack_.Screen
+                    name="SignIn"
+                    component={SignIn}
+                    options={{
+                      title: 'Sign-In',
+                      headerStyle: {
+                        backgroundColor: backgroundTitle
+                      },
+                      headerTintColor: '#fff',
+                      headerTitleStyle: {
+                        flex: 1,
+                        textAlign: 'center',
+                      }}
+                    }
+                />
+            ) : (
+                // User is signed in
+                AppStack
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </>
+
   );
 }
 
