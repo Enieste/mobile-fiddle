@@ -10,7 +10,6 @@ import { v4 } from "uuid";
 
 const isAndroid = Platform.OS === 'android';
 import { FFprobeKit, FFmpegKit } from 'ffmpeg-kit-react-native';
-import UploadsStore from "../mobx/uploadsStore";
 import uploadsStore from "../mobx/uploadsStore";
 
 const compressVideo = async (inputPath, newFileName) => {
@@ -40,18 +39,6 @@ const compressVideo = async (inputPath, newFileName) => {
   return outputPath;
 };
 
-const trimIosVideo = async(inputPath, filename) => {
-  try {
-    // Build the ffmpeg command to trim the video
-    const ffmpegCommand = `-i ${inputPath} -ss ${startTimeForIos} -c:v copy -c:a copy ${filename}`;
-    // Run the ffmpeg command
-    await FFmpegKit.execute(ffmpegCommand);
-    console.log('Video trimming completed successfully!');
-  } catch (error) {
-    console.error('Error trimming video:', error);
-  }
-}
-
 export default async ({
                         teacherId,
                         studentIds,
@@ -65,19 +52,15 @@ export default async ({
 
   const filename = last(localVideoUri.split('/'));
   const newFileName = v4();
-  uploadStore.set(newFileName, {
+  uploadStore.setVideoFileData(localVideoUri, {
     teacherId,
     studentIds,
     filename,
     title,
     practiceItemId,
-    progress: 0,
-    compressing: true,
   });
 
   const compressedVideoUri = await compressVideo(localVideoUri, newFileName);
-  // TODO remove
-  uploadStore.compressComplete(newFileName);
   const trimmedDescription = description ? description.trim() : null;
   const trimmedNotes = notesForTeacher ? notesForTeacher.trim() : null;
   uploadsStore.videoFileStartedUpload(localVideoUri);
@@ -102,13 +85,12 @@ export default async ({
             notesForTeacher: trimmedNotes,
             url: first(signedUrl.split('?')),
           }, () => {
-            uploadStore.setComplete(newFileName);
             uploadsStore.videoFileUploaded(localVideoUri);
           });
         },
         (err) => console.log('err', err), // TODO handle
         (loaded, total) => {
-          uploadStore.progress(newFileName, loaded / total);
+          uploadStore.progress(localVideoUri, loaded / total);
         }
       )
     }

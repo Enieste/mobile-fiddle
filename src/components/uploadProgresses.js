@@ -4,20 +4,15 @@ import { ProgressBar } from '@react-native-community/progress-bar-android';
 import { ProgressView } from "@react-native-community/progress-view";
 import Meteor, { Mongo, useTracker } from '@meteorrn/core';
 import { observer } from 'mobx-react';
-import { autorun } from 'mobx';
 import get from 'lodash/get';
 import { useKeepAwake } from 'expo-keep-awake';
-import uploadsStore from '../mobx/uploadsStore';
+import uploadsStore, {isCompleted, isCompressing, isUploading} from '../mobx/uploadsStore';
 import { fontColor, iconFont } from '../colorSets';
 import { studentNamesToString, isTeacher, isIndependent, userName } from '../lib/utils';
 import UploadComplete from '../components/icons/uploadComplete';
 import { useFocusEffect } from '@react-navigation/native';
 
-const getFilename = upload => upload.filename;
 
-const isComplete  = upload => upload.complete;
-
-const isCompressing = upload => upload.compressing;
 
 const UploadsView = observer(() => {
   const { user, students } = useTracker(() => {
@@ -61,17 +56,19 @@ const UploadsView = observer(() => {
     })();
   }
 
-  const uploadRender = (item) => {
-    const complete = isComplete(item);
-    const compressing = isCompressing(item);
+  const uploadRender = ([id, state]) => {
+    const compressing = isCompressing(state);
+    const completed = isCompleted(state);
+    const uploading = isUploading(state);
+    const meta = uploadsStore.uploadsData.get(id);
     return <View style={styles.upload}>
       <View style={styles.textContainer}>
-        { complete && <View style={styles.icon}>
+        { completed && <View style={styles.icon}>
           <UploadComplete />
         </View> }
-        <Text>{composeUploadText(item)}</Text>
+        {meta ? <Text>{composeUploadText(meta)}</Text> : null}
       </View>
-      { !complete && !compressing && progressBarRender(item.progress) }
+      { uploading && progressBarRender(state.progress) }
       { compressing && <Text>Compressing...</Text> }
     </View>
   }
@@ -80,7 +77,7 @@ const UploadsView = observer(() => {
     style={{ width: '100%'}}
     data={uploads}
     renderItem={({ item }) => uploadRender(item)}
-    keyExtractor={getFilename}
+    keyExtractor={([id, _]) => id}
   /> : <View />
 
 });
