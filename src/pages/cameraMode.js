@@ -62,22 +62,8 @@ const useToggleOrientationMode = () => {
   }, [])) // toggle orientation on screen change
 };
 
-const CameraMode = () => {
-  const [shooting, setShooting] = useState(false);
-  const [type, setType] = useState(CameraType.back);
-  const [isCameraReady, setCameraReady] = useState(false);
-  const [isPermGranted, setPermGranted] = useState(null);
-  const [ratio, setRatio] = useState(undefined);
-  const [width, setWidth] = useState(undefined);
-  const [height, setHeight] = useState(undefined);
-  const [orientation, setOrientation] = useState(
-    ScreenOrientation.Orientation.PORTRAIT_UP
-  );
-
+const useIosLockUnlockCameraRenderBugFix = ({ isPermGranted, isCameraReady }) => {
   const navigation = useNavigation();
-  const dimensions = Dimensions.get('window');
-
-  // ios, sometimes when a user locks/unlocks the screen in phone settings, the camera won't render from the first attempt
   useEffect(() => {
     if (isAndroid) return;
     const timer = setTimeout(() => {
@@ -87,7 +73,13 @@ const CameraMode = () => {
     }, 3000);
     return () => clearTimeout(timer);
   }, [isPermGranted, isCameraReady]);
+};
 
+const useOrientation = () => {
+  const [orientation, setOrientation] = useState(
+      ScreenOrientation.Orientation.PORTRAIT_UP
+  );
+  const dimensions = Dimensions.get('window');
   useEffect(() => {
     // set initial orientation
     ScreenOrientation.getOrientationAsync().then((info) => {
@@ -108,17 +100,16 @@ const CameraMode = () => {
     };
     getAndSetCurrentOrientation();
   }, [dimensions.width]);
+  return orientation;
+};
 
-  useKeepAwake();
-  useToggleOrientationMode();
-  const isFocused = useIsFocused();
-
+const usePermissionsGuard = () => {
+  const [isPermGranted, setPermGranted] = useState(null);
   const ps = [
     Camera.useCameraPermissions(),
     Camera.useMicrophonePermissions(),
     MediaLibrary.usePermissions()
   ];
-
   useEffect(() => {
     const askPermissions = async () => {
       if (!ps.map(([p]) => !!p).every(Boolean)) {
@@ -127,13 +118,13 @@ const CameraMode = () => {
       }
       console.log('permissions ready to read');
       const res = await Promise.all(
-        ps.map(async ([p, ask]) => {
-          return !p.granted ? (await (async () => {
-            const perms = await ask();
-            if (!perms) throw new Error('perms are certainly here but they are not here')
-            return perms;
-          })()).granted : true
-        })
+          ps.map(async ([p, ask]) => {
+            return !p.granted ? (await (async () => {
+              const perms = await ask();
+              if (!perms) throw new Error('perms are certainly here but they are not here')
+              return perms;
+            })()).granted : true
+          })
       );
       const allGranted = res.every(Boolean);
       if (allGranted) {
@@ -145,29 +136,33 @@ const CameraMode = () => {
         permissionAlert();
       }
     }
-    askPermissions();
+    void askPermissions();
   }, ps.map(p => p && p[0]?.granted))
+  return isPermGranted;
+};
 
-  const cameraRef = useRef(null);
-  const videoPromiseRef = useRef(null);
+const getSupportedRatiosAsync = async (cameraRef) => {
+  return await Platform.select({
+    ios: () => Promise.resolve(Platform.isPad ? getRatioStrings(3, 4) : getRatioStrings(9, 16)),
+    android: () => cameraRef.current.getSupportedRatiosAsync()
+  })();
+};
 
-  const getSupportedRatiosAsync = async () => {
-    return await Platform.select({
-      ios: () => Promise.resolve(Platform.isPad ? getRatioStrings(3, 4) : getRatioStrings(9, 16)),
-      android: () => cameraRef.current.getSupportedRatiosAsync()
-    })();
-  };
-
-  const getRatio = async (isOrientationVertical) => {
-    const ratios = (await getSupportedRatiosAsync())
+const getRatio = async (cameraRef, isOrientationVertical) => {
+  const ratios = (await getSupportedRatiosAsync(cameraRef))
       .map(r => r.split(':').map(Number)).filter(([r1, r2]) => isOrientationVertical ? r1 < r2 : r1 > r2);
-    const desiredRatio = isOrientationVertical ? desiredRatioV : desiredRatioH;
-    return find(ratios, r => r[0] === desiredRatio[0] && r[1] === desiredRatio[1]) || last(ratios);
-  };
+  const desiredRatio = isOrientationVertical ? desiredRatioV : desiredRatioH;
+  return find(ratios, r => r[0] === desiredRatio[0] && r[1] === desiredRatio[1]) || last(ratios);
+};
 
-  const orientationSet = async ({ width, height }) => {
+const useOnOrientationSet = () => {
+  const [ratio, setRatio] = useState(undefined);
+  const [width, setWidth] = useState(undefined);
+  const [height, setHeight] = useState(undefined);
+  const orientationSet = async (cameraRef) => {
+    const { width, height } = Dimensions.get('window')
     const isOrientationVertical = width < height;
-    const [r1, r2] = await getRatio(isOrientationVertical);
+    const [r1, r2] = await getRatio(cameraRef, isOrientationVertical);
     const width1 = width;
     const height1 = width1 * r1 / r2;
     const height2 = height;
@@ -188,10 +183,41 @@ const CameraMode = () => {
     setHeight(isOrientationVertical ? vertical.height : horizontal.height);
 
   };
+  return {
+    orientationSet,
+    width,
+    height,
+    ratio
+  };
+};
+
+const CameraMode = () => {
+  const [shooting, setShooting] = useState(false);
+  const [isCameraReady, setCameraReady] = useState(false);
+
+  const navigation = useNavigation();
+
+  const isPermGranted = usePermissionsGuard();
+  // ios, sometimes when a user locks/unlocks the screen in phone settings, the camera won't render from the first attempt
+  useIosLockUnlockCameraRenderBugFix({ isPermGranted, isCameraReady });
+  const orientation = useOrientation();
+  useKeepAwake();
+  useToggleOrientationMode();
+  const isFocused = useIsFocused();
+
+  const cameraRef = useRef(null);
+  const videoPromiseRef = useRef(null);
+
+  const {
+    orientationSet,
+    width,
+    height,
+    ratio
+  } = useOnOrientationSet();
 
   const onCameraReady = async () => {
     setCameraReady(true);
-    await orientationSet(Dimensions.get('window'));
+    await orientationSet(cameraRef);
   };
 
   const toggleRecord = () => {
@@ -216,17 +242,18 @@ const CameraMode = () => {
   const stopSequence = () => {
     stopTimer();
     resetTimer();
-    cameraRef.current.stopRecording();
   };
 
   const stopShooting = () => {
     if (!shooting) return;
     stopSequence();
+    cameraRef.current.stopRecording();
     setShooting(false);
-    videoPromiseRef.current.then(res => {
+    return videoPromiseRef.current.then(res => {
+      videoPromiseRef.current = null;
       console.log('result', res);
       navigation.navigate('CachingVideo', { videoForSaveUri: res.uri });
-    })
+    });
   };
 
   const back = () => {
@@ -234,9 +261,19 @@ const CameraMode = () => {
       navigation.goBack();
     } else {
       stopSequence();
+      cameraRef.current.stopRecording();
+      // on Duane's pixel (and only there so far) there's a bug after clicking "back" during shooting that we can't reproduce anywhere
+      // we add a magic timeout here because the theories are:
+      // 1) some setState isn't actually set on Pixel yet e.g. .then may go synchronously
+      // 2) some handlers aren't cleared up after stopping shooting
       videoPromiseRef.current.then(res => {
-        navigation.goBack();
-      })
+        videoPromiseRef.current = null;
+        setTimeout(() => {
+          // and also purposely clear cameraRef JUST IN CASE
+          cameraRef.current = null;
+          navigation.goBack();
+        }, 300);
+      });
     }
   };
 

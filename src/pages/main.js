@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useLayoutEffect } from 'react';
-import { Text, View, StyleSheet, Image, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
+import {Text, View, StyleSheet, Image, TouchableOpacity, Platform, ActivityIndicator} from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import UploadProgresses from '../components/uploadProgresses';
 import { backgroundMain, backgroundGray, iconFont, backgroundTitle } from '../colorSets';
 import WhiteMenu from '../components/icons/whitemenu';
 import CameraIcon from '../components/icons/camera';
-import uploadStore from '../mobx/uploadsStore';
 import { useNavigation } from '@react-navigation/native';
 import get from 'lodash/get';
+import uploadsStore from "../mobx/uploadsStore";
 
 const UploadIcon = Platform.select({
   ios: () => require('../components/icons/iosUploadIcon').default,
@@ -93,10 +93,24 @@ const styles = StyleSheet.create({
     flex: 1,
     aspectRatio: 1,
     marginBottom: 10,
+  },
+  activityIndicatorContainer: {
+    position: 'absolute',
+    backgroundColor: 'rgba(255,255,255, .5)',
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000
   }
 });
 
+let initialCleanupDone = false;
+
 const UploadPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigation = useNavigation();
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -116,28 +130,38 @@ const UploadPage = () => {
   }, [navigation]);
 
   useEffect(() => {
+    if (initialCleanupDone) return;
     FileSystem.readDirectoryAsync(FileSystem.cacheDirectory).then(res => {
       console.log('cache', res);
       if (res) res.map(cat => {
+        initialCleanupDone = true;
         FileSystem.deleteAsync(FileSystem.cacheDirectory + cat).then(() => console.log(cat, 'cleared'));
       })
     }) // video files stay in cache if upload progress wasn't ended
-  }, [FileSystem]); // ???
+  }, []);
 
   const pickVideo = async () => {
     // No permissions request is necessary for launching the image library
-    uploadStore.clearCompleted();
+    setIsLoading(true);
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
     });
     if (!result.canceled) {
-      navigation.navigate('CachingVideo', { videoInfo: get(result, ['assets', '0'])});
+      setIsLoading(false);
+      const potentialVideoInfo = get(result, ['assets', '0']);
+      uploadsStore.videoFileSelected(potentialVideoInfo.uri);
+      navigation.navigate('CachingVideo', { videoInfo: potentialVideoInfo});
+    } else {
+      setIsLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
+      {isLoading && <View style={styles.activityIndicatorContainer}>
+        <ActivityIndicator size={100} color='#4C92C1' />
+      </View>}
       <View style={styles.watermark}>
         <Image
           style={{ flex:1, height: undefined, width: undefined }}

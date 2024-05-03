@@ -10,6 +10,8 @@ import { v4 } from "uuid";
 
 const isAndroid = Platform.OS === 'android';
 import { FFprobeKit, FFmpegKit } from 'ffmpeg-kit-react-native';
+import UploadsStore from "../mobx/uploadsStore";
+import uploadsStore from "../mobx/uploadsStore";
 
 const compressVideo = async (inputPath, newFileName) => {
     console.log("inputPath", inputPath)
@@ -29,9 +31,12 @@ const compressVideo = async (inputPath, newFileName) => {
   const trimCommand = `-ss 00:00:00.080` // start time for ios for decent thumbnails
 
   const ffmpegCMD = `-y -i ${inputPath} -color_trc 6 -color_primaries 5 -color_range 1 -vcodec libx264 ${isAndroid ? "" : trimCommand} -pix_fmt yuv420p -level 5.1 -preset ultrafast -c:a aac -b:a 128k -vf "scale=${outputWidth}:${outputHeight}" ${outputPath}`;
- 
+    uploadsStore.videoFileAddedToCache(inputPath);
+    uploadsStore.videoFileStartedEncoding(inputPath, outputPath);
   await FFmpegKit.execute(ffmpegCMD);
-  console.log('Video compression completed successfully!')  ;
+    uploadsStore.videoFileEncoded(inputPath);
+
+  console.log('Video compression completed successfully!');
   return outputPath;
 };
 
@@ -71,10 +76,11 @@ export default async ({
   });
 
   const compressedVideoUri = await compressVideo(localVideoUri, newFileName);
+  // TODO remove
   uploadStore.compressComplete(newFileName);
   const trimmedDescription = description ? description.trim() : null;
   const trimmedNotes = notesForTeacher ? notesForTeacher.trim() : null;
-
+  uploadsStore.videoFileStartedUpload(localVideoUri);
   Meteor.call('getStudentVideoS3UploadPermission',
     { teacherId, filename },
     (err, signResult) => {
@@ -97,7 +103,7 @@ export default async ({
             url: first(signedUrl.split('?')),
           }, () => {
             uploadStore.setComplete(newFileName);
-            FileSystem.deleteAsync(localVideoUri).then(() => 'deleted!');
+            uploadsStore.videoFileUploaded(localVideoUri);
           });
         },
         (err) => console.log('err', err), // TODO handle

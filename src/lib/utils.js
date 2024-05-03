@@ -6,6 +6,8 @@ import first from 'lodash/first';
 import moment from 'moment';
 import { StackActions, useNavigation, useRoute } from "@react-navigation/native";
 import { useCallback } from "react";
+import uploadsStore from "../mobx/uploadsStore";
+import { CACHING_VIDEO_PAGE, CATEGORY_SELECT_PAGE, STUDENT_SELECT_PAGE } from "../constants";
 
 export const TEACHER = 'teacher';
 export const STUDENT = 'student';
@@ -53,10 +55,18 @@ export const getTeacherId = user => get(user, ['profile', 'teacherId']);
 
 export const userName = user => get(user, ['profile', 'firstName']);
 
+const penultimate = a => a.length > 1 ? a[a.length - 2] : null;
+
 export const goBack = (navigation) => navigation.dispatch(StackActions.popToTop());
 export const useGoBack = () => {
   const navigation = useNavigation();
   return useCallback(() => {
+    const state = navigation.getState();
+    const current = last(state.routes);
+    const next = penultimate(state.routes);
+    if (next && current && next.name === CACHING_VIDEO_PAGE && [STUDENT_SELECT_PAGE, CATEGORY_SELECT_PAGE].indexOf(current.name) !== -1) {
+      uploadsStore.cancelCurrentUpload();
+    }
     goBack(navigation);
   }, [navigation]);
 };

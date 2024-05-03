@@ -19,6 +19,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from 'expo-splash-screen';
 import NetInfo from '@react-native-community/netinfo';
 import { useDebounce } from "@uidotdev/usehooks";
+import {
+  CACHING_VIDEO_PAGE,
+  CAMERA_MODE_PAGE,
+  CATEGORY_SELECT_PAGE, COMMENTS_PAGE,
+  SETTINGS_PAGE, SONG_SELECT_PAGE,
+  STUDENT_SELECT_PAGE, SUMMARY_PAGE
+} from "./src/constants";
 const useIsConnected = () => {
   const [isConnected, setIsConnected] = useState(null);
   useEffect(() => NetInfo.addEventListener(state => {
@@ -94,14 +101,14 @@ const AppStack = <>
     name="Home"
     component={UploadPage}
   />
-  <AppStack_.Screen name="Settings" component={SignOut} />
-  <AppStack_.Screen name="CameraMode" component={CameraMode} />
-  <AppStack_.Screen name="CachingVideo" component={CachingVideo} />
-  <AppStack_.Screen name="StudentSelect" component={StudentSelect} />
-  <AppStack_.Screen name="CategorySelect" component={CategorySelect} />
-  <AppStack_.Screen name="SongSelect" component={SongSelect} />
-  <AppStack_.Screen name="Comments" component={Comments} />
-  <AppStack_.Screen name="Summary" component={Summary} />
+  <AppStack_.Screen name={SETTINGS_PAGE} component={SignOut} />
+  <AppStack_.Screen name={CAMERA_MODE_PAGE} component={CameraMode} />
+  <AppStack_.Screen name={CACHING_VIDEO_PAGE} component={CachingVideo} />
+  <AppStack_.Screen name={STUDENT_SELECT_PAGE} component={StudentSelect} />
+  <AppStack_.Screen name={CATEGORY_SELECT_PAGE} component={CategorySelect} />
+  <AppStack_.Screen name={SONG_SELECT_PAGE} component={SongSelect} />
+  <AppStack_.Screen name={COMMENTS_PAGE} component={Comments} />
+  <AppStack_.Screen name={SUMMARY_PAGE} component={Summary} />
 </>;
 
 const Stack = createStackNavigator();

@@ -7,6 +7,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import appStore from '../mobx/appStore';
+import uploadsStore from "../mobx/uploadsStore";
 
 const isAndroid = Platform.OS === 'android';
 
@@ -40,6 +41,14 @@ const nonLandscapeAlert = () => Alert.alert(
   { cancelable: true }
 );
 
+const emptyVideoAlert = () => Alert.alert(
+    'Video loading error',
+    "There's an unexpected error loading your video. Please contact FiddleQuest so we're aware of it. As a temporary fix, try to use another phone/tablet for uploading.",
+    [
+      {text: 'Close'},
+    ],
+);
+
 const CachingVideo = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -47,24 +56,28 @@ const CachingVideo = () => {
 
   useEffect(() => {
     const user = Meteor.user();
-    const uploadedVideoInfo = get(route, ['params', 'videoInfo']);
+    const fileSystemVideoInfo = get(route, ['params', 'videoInfo']);
     const uriFromCamera = get(route, ['params', 'videoForSaveUri']);
 
+    if (fileSystemVideoInfo && (fileSystemVideoInfo.fileSize === 0 || fileSystemVideoInfo.duration < 1000)) {
+      emptyVideoAlert();
+      navigation.navigate('Home');
+    }
     const goBackIfPortrait = async() => {
-      if (uploadedVideoInfo) {
-        if (isAndroid && uploadedVideoInfo.rotation % rotationModulus !==0) {
+      if (fileSystemVideoInfo) {
+        if (isAndroid && fileSystemVideoInfo.rotation % rotationModulus !==0) {
           nonLandscapeAlert();
           navigation.canGoBack();
           // throw 'nonLandscapeVideo';
         }
   
-        if (uploadedVideoInfo.height > uploadedVideoInfo.width) {
+        if (fileSystemVideoInfo.height > fileSystemVideoInfo.width) {
           nonLandscapeAlert();
           navigation.navigate('Home');
           throw 'nonLandscapeVideo';
         }
-  
-        navigateCategoryOrStudentSelect(navigation, uploadedVideoInfo.uri, user);
+
+        navigateCategoryOrStudentSelect(navigation, fileSystemVideoInfo.uri, user);
       }
     }
 
@@ -73,6 +86,7 @@ const CachingVideo = () => {
     uriFromCamera && MediaLibrary.saveToLibraryAsync(uriFromCamera).then(() =>
       {
         console.log('saving complete');
+        uploadsStore.videoFileSelected(uriFromCamera);
         navigateCategoryOrStudentSelect(navigation, uriFromCamera, user);
       }
     );
