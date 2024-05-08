@@ -2,7 +2,7 @@
   "expo": {
     "name": "FiddleQuest Video Recorder",
     "slug": "teacher-video-app",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "privacy": "public",
     "icon": "./src/assets/app-icon.png",
     "userInterfaceStyle": "light",
@@ -82,7 +82,7 @@
       }
     },
     "android": {
-      "versionCode": 20,
+      "versionCode": 21,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/ic_launcher_foreground.png",
         "backgroundColor": "#FFFFFF"
