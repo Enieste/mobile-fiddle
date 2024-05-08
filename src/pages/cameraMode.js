@@ -1,7 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  StatusBar,
+  Platform,
+  ActivityIndicator
+} from 'react-native';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { Camera, CameraType } from 'expo-camera';
+import { Camera } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
 import { useKeepAwake } from 'expo-keep-awake';
 import last from 'lodash/last';
@@ -13,6 +22,7 @@ import { durationToStr } from '../lib/utils';
 import permissionAlert from '../components/permissionAlert';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
+import LoadingView from "../components/loadingView";
 const { getPlatformOrientationLockAsync } = ScreenOrientation;
 const isAndroid = Platform.OS === 'android';
 
@@ -216,8 +226,12 @@ const CameraMode = () => {
   } = useOnOrientationSet();
 
   const onCameraReady = async () => {
-    setCameraReady(true);
     await orientationSet(cameraRef);
+    setCameraReady(true);
+  };
+
+  const onMountError = () => {
+    navigation.goBack();
   };
 
   const toggleRecord = () => {
@@ -284,14 +298,13 @@ const CameraMode = () => {
   // don't draw camera in the background
   if (!isFocused) return null;
   if (isPermGranted === null) {
-    return <View>
-      <Text>Waiting for camera</Text>
-    </View>;
+    return <LoadingView text="Waiting for permissions" />
   } else if (isPermGranted === false) {
     return <Text>No access to camera</Text>;
   } else {
     return (
       <View style={styles.container}>
+        {!isCameraReady ? <LoadingView text='Waiting for camera' /> : null}
         <StatusBar hidden/>
         <TouchableOpacity style={styles.backButton} onPress={back}>
           <Icon
@@ -315,7 +328,7 @@ const CameraMode = () => {
           style={[styles.camera, { opacity: width && height && ratio ? 1 : 0, width, height, maxWidth: width, maxHeight: height }]}
           type={Camera.Constants.Type.back}
           onCameraReady={onCameraReady}
-          onMountError={e => console.error('camera mount error', e)}
+          onMountError={onMountError}
         >
           <View
             style={[styles.buttonContainer]}>

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Text, View, ActivityIndicator, StyleSheet, Platform, Alert } from 'react-native';
 import Meteor from '@meteorrn/core';
 import get from 'lodash/get';
-import { accountType, childrenIds, TEACHER, STUDENT } from "../lib/utils";
+import {accountType, childrenIds, TEACHER, STUDENT, goBack} from "../lib/utils";
 import * as MediaLibrary from 'expo-media-library';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -41,11 +41,11 @@ const nonLandscapeAlert = () => Alert.alert(
   { cancelable: true }
 );
 
-const emptyVideoAlert = () => Alert.alert(
+const emptyVideoAlert = (navigation) => Alert.alert(
     'Video loading error',
     "There's an unexpected error loading your video. Please contact FiddleQuest so we're aware of it. As a temporary fix, try to use another phone/tablet for uploading.",
     [
-      {text: 'Close'},
+      { text: 'Close', onPress: () => goBack(navigation) },
     ],
 );
 
@@ -60,8 +60,7 @@ const CachingVideo = () => {
     const uriFromCamera = get(route, ['params', 'videoForSaveUri']);
 
     if (fileSystemVideoInfo && (fileSystemVideoInfo.fileSize === 0 || fileSystemVideoInfo.duration < 1000)) {
-      emptyVideoAlert();
-      navigation.navigate('Home');
+      emptyVideoAlert(navigation);
     }
     const goBackIfPortrait = async() => {
       if (fileSystemVideoInfo) {

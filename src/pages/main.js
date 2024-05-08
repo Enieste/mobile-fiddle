@@ -9,6 +9,7 @@ import CameraIcon from '../components/icons/camera';
 import { useNavigation } from '@react-navigation/native';
 import get from 'lodash/get';
 import uploadsStore from "../mobx/uploadsStore";
+import {UIImagePickerPreferredAssetRepresentationMode} from "expo-image-picker";
 
 const UploadIcon = Platform.select({
   ios: () => require('../components/icons/iosUploadIcon').default,
@@ -146,6 +147,7 @@ const UploadPage = () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
+      preferredAssetRepresentationMode: UIImagePickerPreferredAssetRepresentationMode.Current,
     });
     if (!result.canceled) {
       setIsLoading(false);
@@ -161,6 +163,7 @@ const UploadPage = () => {
     <View style={styles.container}>
       {isLoading && <View style={styles.activityIndicatorContainer}>
         <ActivityIndicator size={100} color='#4C92C1' />
+        <Text style={styles.text}>Loading selected video...</Text>
       </View>}
       <View style={styles.watermark}>
         <Image

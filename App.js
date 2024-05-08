@@ -1,6 +1,7 @@
-import React, {createContext, useEffect, useRef, useState} from 'react';
+import React, { createContext, useEffect, useRef, useState } from 'react';
 import Meteor, { useTracker } from '@meteorrn/core';
 import { createStackNavigator } from '@react-navigation/stack';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import 'react-native-gesture-handler';
 import SignIn from './src/pages/signIn';
 import SignOut from './src/pages/signOut';
@@ -13,8 +14,8 @@ import CategorySelect from './src/pages/categorySelect';
 import Comments from './src/pages/comments';
 import Summary from './src/pages/summary';
 import {backgroundTitle, iconFont} from './src/colorSets';
-import { NavigationContainer } from "@react-navigation/native";
-import {ActivityIndicator, Alert, BackHandler, StyleSheet, Text, View} from "react-native";
+import {NavigationContainer, useNavigation, useRoute} from "@react-navigation/native";
+import {Text, View} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from 'expo-splash-screen';
 import NetInfo from '@react-native-community/netinfo';
@@ -81,6 +82,10 @@ const AuthStack_ = createStackNavigator();
 
 const AppStack_ = createStackNavigator();
 
+const useScreenLockedToPortrait = () => {
+  void ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+};
+
 const screenOptions = {
   headerStyle: {
     backgroundColor: backgroundTitle,
@@ -116,6 +121,7 @@ const Stack = createStackNavigator();
 const App = () => {
   const { user, isLoading, userCertainlyChecked } = useUser();
   const isConnected = useIsConnected();
+  useScreenLockedToPortrait();
   return (
       <>
         {isLoading || !userCertainlyChecked ? <View>
